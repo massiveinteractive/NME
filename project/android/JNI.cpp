@@ -267,14 +267,13 @@ void RemoveJavaHaxeObjectRef(value inValue)
    pthread_mutex_unlock(&gJavaObjectsMutex);
 }
 
-
 struct JNIObject : public nme::Object
 {
    JNIObject(jobject inObject)
    {
       mObject = inObject;
       if (mObject)
-         GetEnv()->NewGlobalRef(mObject);
+         mObject = (GetEnv()->NewGlobalRef(mObject));
    }
    ~JNIObject()
    {
@@ -285,8 +284,6 @@ struct JNIObject : public nme::Object
    jobject GetJObject() { return mObject; }
    jobject mObject;
 };
-
-
 
 bool AbstractToJObject(value inValue, jobject &outObject)
 {
