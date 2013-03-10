@@ -1,5 +1,5 @@
 package nme.net;
-#if code_completion
+#if display
 
 
 /**
@@ -47,9 +47,9 @@ extern class URLRequestMethod {
 
 
 #elseif (cpp || neko)
-typedef URLRequestMethod = neash.net.URLRequestMethod;
+typedef URLRequestMethod = native.net.URLRequestMethod;
 #elseif js
-typedef URLRequestMethod = jeash.net.URLRequestMethod;
+typedef URLRequestMethod = browser.net.URLRequestMethod;
 #else
 typedef URLRequestMethod = flash.net.URLRequestMethod;
 #end

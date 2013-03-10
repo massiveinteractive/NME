@@ -22,11 +22,12 @@
     </initialWindow>
 	
     <env var="LD_LIBRARY_PATH" value="app/native"/>
+    ::if (WIN_ORIENTATION == "portrait")::<env var="FORCE_PORTRAIT" value="1" />::end::
 	<action system="true">run_native</action>
     
 	<category>core.games</category>
     
-	<asset entry="true" path="::APP_FILE::" type="Qnx/Elf">::APP_FILE::</asset>
+	<asset entry="true" path="::APP_FILE_SAFE::" type="Qnx/Elf">::APP_FILE_SAFE::</asset>
 	<asset path=".">.</asset>
 	
 	::if (HAS_ICON)::<icon>

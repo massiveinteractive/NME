@@ -1,5 +1,5 @@
 package nme;
-#if code_completion
+#if display
 
 
 import nme.utils.ByteArray;
@@ -22,7 +22,9 @@ extern class Memory
 
 
 #elseif (cpp || neko)
-typedef Memory = neash.Memory;
+typedef Memory = native.Memory;
+#elseif (js)
+typedef Memory = browser.Memory;
 #else
 typedef Memory = flash.Memory;
 #end

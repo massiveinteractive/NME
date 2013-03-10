@@ -1,5 +1,5 @@
 package nme.net;
-#if code_completion
+#if display
 
 
 /**
@@ -46,9 +46,9 @@ extern class URLVariables implements Dynamic {
 
 
 #elseif (cpp || neko)
-typedef URLVariables = neash.net.URLVariables;
+typedef URLVariables = native.net.URLVariables;
 #elseif js
-typedef URLVariables = jeash.net.URLVariables;
+typedef URLVariables = browser.net.URLVariables;
 #else
 typedef URLVariables = flash.net.URLVariables;
 #end

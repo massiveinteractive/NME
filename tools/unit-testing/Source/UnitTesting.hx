@@ -8,6 +8,7 @@ import tests.nme.display.BitmapDataTest;
 import tests.nme.display.DisplayObjectTest;
 import tests.nme.display.DisplayObjectContainerTest;
 import tests.nme.display.GraphicsTest;
+import tests.nme.utils.ByteArrayTest;
 import nme.Lib;
 
 
@@ -34,14 +35,21 @@ class UnitTesting extends Sprite {
 		#end
 		
 		fill (0xEEEEEE);
+
+		var runner:TestRunner = new TestRunner ();
 		
-		var runner = new TestRunner ();
+		#if flash
+		TestRunner.print("Flash Version: " + flash.system.Capabilities.version + "\n\n");
+		#end
 		
 		runner.add (new BitmapTest ());
 		runner.add (new BitmapDataTest ());
 		runner.add (new DisplayObjectTest ());
 		runner.add (new DisplayObjectContainerTest ());
 		runner.add (new GraphicsTest ());
+		
+		runner.add (new ByteArrayTest ());
+		
 		
 		var success = runner.run ();
 		

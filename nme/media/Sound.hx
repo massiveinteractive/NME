@@ -1,5 +1,5 @@
 package nme.media;
-#if code_completion
+#if display
 
 
 /**
@@ -360,9 +360,9 @@ extern class Sound extends nme.events.EventDispatcher {
 
 
 #elseif (cpp || neko)
-typedef Sound = neash.media.Sound;
+typedef Sound = native.media.Sound;
 #elseif js
-typedef Sound = jeash.media.Sound;
+typedef Sound = browser.media.Sound;
 #else
 typedef Sound = flash.media.Sound;
 #end

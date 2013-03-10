@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -221,9 +221,9 @@ extern class MovieClip extends Sprite #if !flash_strict, implements Dynamic #end
 
 
 #elseif (cpp || neko)
-typedef MovieClip = neash.display.MovieClip;
+typedef MovieClip = native.display.MovieClip;
 #elseif js
-typedef MovieClip = jeash.display.MovieClip;
+typedef MovieClip = browser.display.MovieClip;
 #else
 typedef MovieClip = flash.display.MovieClip;
 #end

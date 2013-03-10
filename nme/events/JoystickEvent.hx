@@ -1,5 +1,5 @@
 package nme.events;
-#if code_completion
+#if display
 
 
 extern class JoystickEvent extends Event
@@ -10,6 +10,7 @@ extern class JoystickEvent extends Event
 	static var BUTTON_UP:String;
 	static var HAT_MOVE:String;
 	
+	var axis:Array<Float>;
 	var device:Int;
 	var id:Int;
 	var x:Float;
@@ -22,6 +23,6 @@ extern class JoystickEvent extends Event
 
 #elseif (cpp || neko)
 
-typedef JoystickEvent = neash.events.JoystickEvent;
+typedef JoystickEvent = native.events.JoystickEvent;
 
 #end

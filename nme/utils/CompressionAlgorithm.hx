@@ -1,5 +1,5 @@
 package nme.utils;
-#if code_completion
+#if display
 
 
 /**
@@ -19,13 +19,18 @@ package nme.utils;
 	 * Defines the string to use for the zlib compression algorithm.
 	 */
 	ZLIB;
+	
+	/**
+	 * Defines the string to use for the lzma compression algorithm.
+	 */
+	LZMA;
 }
 
 
 #elseif (cpp || neko)
-typedef CompressionAlgorithm = neash.utils.CompressionAlgorithm;
+typedef CompressionAlgorithm = native.utils.CompressionAlgorithm;
 #elseif js
-typedef CompressionAlgorithm = jeash.utils.CompressionAlgorithm;
+typedef CompressionAlgorithm = browser.utils.CompressionAlgorithm;
 #else
 typedef CompressionAlgorithm = flash.utils.CompressionAlgorithm;
 #end

@@ -18,4 +18,40 @@ namespace nme {
 		return std::string(locale, lang_len);
 	}
 	
+	bool SetDPIAware()
+	{
+		HMODULE usr32 = LoadLibrary("user32.dll");
+		if(!usr32) return false;
+		
+		BOOL (*addr)() = (BOOL (*)())GetProcAddress(usr32, "SetProcessDPIAware");
+		return addr ? addr() : false;
+	}
+
+	bool dpiAware = SetDPIAware();
+
+	double CapabilitiesGetScreenDPI()
+	{
+		HDC screen = GetDC(NULL);
+		/* It reports 72... :(
+		double hSize = GetDeviceCaps(screen, HORZSIZE);
+		double vSize = GetDeviceCaps(screen, VERTSIZE);
+		double hRes = GetDeviceCaps(screen, HORZRES);
+		double vRes = GetDeviceCaps(screen, VERTRES);
+		double hPixelsPerInch = hRes / hSize * 25.4;
+		double vPixelsPerInch = vRes / vSize * 25.4;
+		*/
+		double hPixelsPerInch = GetDeviceCaps(screen,LOGPIXELSX);
+		double vPixelsPerInch = GetDeviceCaps(screen,LOGPIXELSY);
+		ReleaseDC(NULL, screen);
+		return (hPixelsPerInch + vPixelsPerInch) * 0.5;
+	}
+
+	double CapabilitiesGetPixelAspectRatio() {
+		HDC screen = GetDC(NULL);
+		double hPixelsPerInch = GetDeviceCaps(screen,LOGPIXELSX);
+		double vPixelsPerInch = GetDeviceCaps(screen,LOGPIXELSY);
+		ReleaseDC(NULL, screen);
+		return hPixelsPerInch / vPixelsPerInch;
+	}
+
 }

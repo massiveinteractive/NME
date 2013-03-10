@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 extern interface IBitmapDrawable {
@@ -7,9 +7,9 @@ extern interface IBitmapDrawable {
 
 
 #elseif (cpp || neko)
-typedef IBitmapDrawable = neash.display.IBitmapDrawable;
+typedef IBitmapDrawable = native.display.IBitmapDrawable;
 #elseif js
-typedef IBitmapDrawable = jeash.display.IBitmapDrawable;
+typedef IBitmapDrawable = browser.display.IBitmapDrawable;
 #else
 typedef IBitmapDrawable = flash.display.IBitmapDrawable;
 #end

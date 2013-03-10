@@ -1,5 +1,5 @@
 package nme.external;
-#if code_completion
+#if display
 
 
 /**
@@ -234,9 +234,9 @@ extern class ExternalInterface {
 
 
 #elseif (cpp || neko)
-typedef ExternalInterface = neash.external.ExternalInterface;
+typedef ExternalInterface = native.external.ExternalInterface;
 #elseif js
-typedef ExternalInterface = jeash.external.ExternalInterface;
+typedef ExternalInterface = browser.external.ExternalInterface;
 #else
 typedef ExternalInterface = flash.external.ExternalInterface;
 #end

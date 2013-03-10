@@ -1,5 +1,5 @@
 package nme.text;
-#if code_completion
+#if display
 
 
 /**
@@ -37,9 +37,9 @@ package nme.text;
 
 
 #elseif (cpp || neko)
-typedef TextFieldAutoSize = neash.text.TextFieldAutoSize;
+typedef TextFieldAutoSize = native.text.TextFieldAutoSize;
 #elseif js
-typedef TextFieldAutoSize = jeash.text.TextFieldAutoSize;
+typedef TextFieldAutoSize = browser.text.TextFieldAutoSize;
 #else
 typedef TextFieldAutoSize = flash.text.TextFieldAutoSize;
 #end

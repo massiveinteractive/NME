@@ -35,15 +35,17 @@ class ApplicationMain
 					nme.Lib.current.stage.scaleMode = nme.display.StageScaleMode.NO_SCALE;
 				}
 				
-				// Need to wait for resize for the stage size to reflect properly
-				
-				nme.Lib.current.stage.addEventListener (nme.events.Event.RESIZE, initialize);
+				//nme.Lib.current.stage.addEventListener (nme.events.Event.RESIZE, initialize);
+				initialize ();
 			},
 			::WIN_WIDTH::, ::WIN_HEIGHT::,
 			::WIN_FPS::,
 			::WIN_BACKGROUND::,
 			(::WIN_HARDWARE:: ? nme.Lib.HARDWARE : 0) |
-			(::WIN_SHADERS:: ? nme.Lib.ALLOW_SHADERS : 0) |
+			(::WIN_ALLOW_SHADERS:: ? nme.Lib.ALLOW_SHADERS : 0) |
+			(::WIN_REQUIRE_SHADERS:: ? nme.Lib.REQUIRE_SHADERS : 0) |
+			(::WIN_DEPTH_BUFFER:: ? nme.Lib.DEPTH_BUFFER : 0) |
+			(::WIN_STENCIL_BUFFER:: ? nme.Lib.STENCIL_BUFFER : 0) |
 			(::WIN_RESIZABLE:: ? nme.Lib.RESIZABLE : 0) |
 			(::WIN_ANTIALIASING:: == 4 ? nme.Lib.HW_AA_HIRES : 0) |
 			(::WIN_ANTIALIASING:: == 2 ? nme.Lib.HW_AA : 0),
@@ -53,9 +55,9 @@ class ApplicationMain
 	}
 	
 	
-	private static function initialize (event:nme.events.Event):Void
+	private static function initialize ():Void
 	{
-		nme.Lib.current.stage.removeEventListener (nme.events.Event.RESIZE, initialize);
+		//nme.Lib.current.stage.removeEventListener (nme.events.Event.RESIZE, initialize);
 		
 		var hasMain = false;
 				

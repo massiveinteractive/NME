@@ -149,7 +149,7 @@ public:
       }
    }
 
-   RenderTarget BeginRender(const nme::Rect &inRect)
+   RenderTarget BeginRender(const nme::Rect &inRect, bool inForHitTest=false)
    {
       return RenderTarget(nme::Rect(Width(),Height()), Format(), (uint8 *)mBuffer, mWidth*4);
    }
@@ -1101,9 +1101,10 @@ int GetDeviceOrientation() {
 
 double CapabilitiesGetPixelAspectRatio() {
 	
-	CGRect screenBounds = [[UIScreen mainScreen] bounds];
+	//CGRect screenBounds = [[UIScreen mainScreen] bounds];
+	//return screenBounds.size.width / screenBounds.size.height;
 	
-	return screenBounds.size.width / screenBounds.size.height;
+	return 1;
 	
 }
 	

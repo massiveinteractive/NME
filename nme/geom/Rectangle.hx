@@ -1,5 +1,5 @@
 package nme.geom;
-#if code_completion
+#if display
 
 
 /**
@@ -340,9 +340,9 @@ extern class Rectangle {
 
 
 #elseif (cpp || neko)
-typedef Rectangle = neash.geom.Rectangle;
+typedef Rectangle = native.geom.Rectangle;
 #elseif js
-typedef Rectangle = jeash.geom.Rectangle;
+typedef Rectangle = browser.geom.Rectangle;
 #else
 typedef Rectangle = flash.geom.Rectangle;
 #end

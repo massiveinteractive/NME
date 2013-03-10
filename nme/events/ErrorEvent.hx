@@ -1,5 +1,5 @@
 package nme.events;
-#if code_completion
+#if display
 
 
 /**
@@ -63,9 +63,9 @@ extern class ErrorEvent extends TextEvent {
 
 
 #elseif (cpp || neko)
-typedef ErrorEvent = neash.events.ErrorEvent;
+typedef ErrorEvent = native.events.ErrorEvent;
 #elseif js
-typedef ErrorEvent = jeash.events.ErrorEvent;
+typedef ErrorEvent = browser.events.ErrorEvent;
 #else
 typedef ErrorEvent = flash.events.ErrorEvent;
 #end

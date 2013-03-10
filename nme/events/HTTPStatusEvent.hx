@@ -1,5 +1,5 @@
 package nme.events;
-#if code_completion
+#if display
 
 
 /**
@@ -102,9 +102,9 @@ extern class HTTPStatusEvent extends Event {
 
 
 #elseif (cpp || neko)
-typedef HTTPStatusEvent = neash.events.HTTPStatusEvent;
+typedef HTTPStatusEvent = native.events.HTTPStatusEvent;
 #elseif js
-typedef HTTPStatusEvent = jeash.events.HTTPStatusEvent;
+typedef HTTPStatusEvent = browser.events.HTTPStatusEvent;
 #else
 typedef HTTPStatusEvent = flash.events.HTTPStatusEvent;
 #end

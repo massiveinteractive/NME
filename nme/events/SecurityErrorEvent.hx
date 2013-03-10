@@ -1,5 +1,5 @@
 package nme.events;
-#if code_completion
+#if display
 
 
 /**
@@ -56,9 +56,9 @@ extern class SecurityErrorEvent extends ErrorEvent {
 
 
 #elseif (cpp || neko)
-typedef SecurityErrorEvent = neash.events.SecurityErrorEvent;
+typedef SecurityErrorEvent = native.events.SecurityErrorEvent;
 #elseif js
-typedef SecurityErrorEvent = jeash.events.SecurityErrorEvent;
+typedef SecurityErrorEvent = browser.events.SecurityErrorEvent;
 #else
 typedef SecurityErrorEvent = flash.events.SecurityErrorEvent;
 #end

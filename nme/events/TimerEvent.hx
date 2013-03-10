@@ -1,5 +1,5 @@
 package nme.events;
-#if code_completion
+#if display
 
 
 /**
@@ -52,9 +52,9 @@ extern class TimerEvent extends Event {
 
 
 #elseif (cpp || neko)
-typedef TimerEvent = neash.events.TimerEvent;
+typedef TimerEvent = native.events.TimerEvent;
 #elseif js
-typedef TimerEvent = jeash.events.TimerEvent;
+typedef TimerEvent = browser.events.TimerEvent;
 #else
 typedef TimerEvent = flash.events.TimerEvent;
 #end

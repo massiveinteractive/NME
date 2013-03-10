@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -30,9 +30,9 @@ package nme.display;
 
 
 #elseif (cpp || neko)
-typedef SpreadMethod = neash.display.SpreadMethod;
+typedef SpreadMethod = native.display.SpreadMethod;
 #elseif js
-typedef SpreadMethod = jeash.display.SpreadMethod;
+typedef SpreadMethod = browser.display.SpreadMethod;
 #else
 typedef SpreadMethod = flash.display.SpreadMethod;
 #end

@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -32,9 +32,9 @@ package nme.display;
 
 
 #elseif (cpp || neko)
-typedef CapsStyle = neash.display.CapsStyle;
+typedef CapsStyle = native.display.CapsStyle;
 #elseif js
-typedef CapsStyle = jeash.display.CapsStyle;
+typedef CapsStyle = browser.display.CapsStyle;
 #else
 typedef CapsStyle = flash.display.CapsStyle;
 #end

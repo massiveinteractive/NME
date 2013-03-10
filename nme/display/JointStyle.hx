@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -33,9 +33,9 @@ package nme.display;
 
 
 #elseif (cpp || neko)
-typedef JointStyle = neash.display.JointStyle;
+typedef JointStyle = native.display.JointStyle;
 #elseif js
-typedef JointStyle = jeash.display.JointStyle;
+typedef JointStyle = browser.display.JointStyle;
 #else
 typedef JointStyle = flash.display.JointStyle;
 #end

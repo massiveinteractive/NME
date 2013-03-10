@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 extern class ManagedStage extends Stage
@@ -44,5 +44,5 @@ extern class ManagedStage extends Stage
 
 
 #elseif (cpp || neko)
-typedef ManagedStage = neash.display.ManagedStage;
+typedef ManagedStage = native.display.ManagedStage;
 #end

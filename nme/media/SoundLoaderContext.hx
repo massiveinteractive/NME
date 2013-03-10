@@ -1,5 +1,5 @@
 package nme.media;
-#if code_completion
+#if display
 
 
 /**
@@ -155,9 +155,9 @@ extern class SoundLoaderContext {
 
 
 #elseif (cpp || neko)
-typedef SoundLoaderContext = neash.media.SoundLoaderContext;
+typedef SoundLoaderContext = native.media.SoundLoaderContext;
 #elseif js
-typedef SoundLoaderContext = jeash.media.SoundLoaderContext;
+typedef SoundLoaderContext = browser.media.SoundLoaderContext;
 #else
 typedef SoundLoaderContext = flash.media.SoundLoaderContext;
 #end

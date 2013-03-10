@@ -1,5 +1,5 @@
 package nme.net;
-#if code_completion
+#if display
 
 
 /**
@@ -98,9 +98,9 @@ package nme.net;
 
 
 #elseif (cpp || neko)
-typedef URLRequestHeader = neash.net.URLRequestHeader;
+typedef URLRequestHeader = native.net.URLRequestHeader;
 #elseif js
-typedef URLRequestHeader = jeash.net.URLRequestHeader;
+typedef URLRequestHeader = browser.net.URLRequestHeader;
 #else
 typedef URLRequestHeader = flash.net.URLRequestHeader;
 #end

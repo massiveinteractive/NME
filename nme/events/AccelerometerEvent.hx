@@ -1,5 +1,5 @@
 package nme.events;
-#if code_completion
+#if display
 
 
 /**
@@ -78,9 +78,9 @@ package nme.events;
 
 
 #elseif (cpp || neko)
-typedef AccelerometerEvent = neash.events.AccelerometerEvent;
+typedef AccelerometerEvent = native.events.AccelerometerEvent;
 #elseif js
-typedef AccelerometerEvent = jeash.events.AccelerometerEvent;
+typedef AccelerometerEvent = browser.events.AccelerometerEvent;
 #else
 typedef AccelerometerEvent = flash.events.AccelerometerEvent;
 #end

@@ -1,5 +1,5 @@
 #include "./OGL.h"
-
+#include <NMEThread.h>
 
 
 #ifdef NEED_EXTENSIONS
@@ -13,6 +13,7 @@
 int sgDrawCount = 0;
 int sgBufferCount = 0;
 int sgDrawBitmap = 0;
+
 
 namespace nme
 {
@@ -28,6 +29,8 @@ void ResetHardwareContext()
    //__android_log_print(ANDROID_LOG_ERROR, "NME", "ResetHardwareContext");
    gTextureContextVersion++;
 }
+
+
 
 // --- HardwareContext Interface ---------------------------------------------------------
 
@@ -55,6 +58,7 @@ public:
       mLineScaleH = -1;
       mPointSmooth = true;
       mColourArrayEnabled = false;
+      mThreadId = GetThreadId();
       const char *str = (const char *)glGetString(GL_VENDOR);
       if (str && !strncmp(str,"Intel",5))
          mPointSmooth = false;
@@ -67,6 +71,18 @@ public:
    ~OGLContext()
    {
    }
+
+   void DestroyNativeTexture(void *inNativeTexture)
+   {
+      GLuint tid = (GLuint)(size_t)inNativeTexture;
+      if ( !IsMainThread() )
+      {
+         printf("Warning - leaking texture %d", tid );
+      }
+      else
+         glDeleteTextures(1,&tid);
+   }
+
 
    void SetWindowSize(int inWidth,int inHeight)
    {
@@ -154,43 +170,51 @@ public:
    }
 
 
-   void BeginRender(const Rect &inRect)
+   void BeginRender(const Rect &inRect,bool inForHitTest)
    {
-      #ifndef NME_GLES
-      #ifndef SDL_OGL
-      wglMakeCurrent(mDC,mOGLCtx);
-      #endif
-      #endif
-
-      // Force dirty
-      mViewport.w = -1;
-      SetViewport(inRect);
-
-      glEnable(GL_BLEND);
-      glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-
-      #ifdef WEBOS
-      glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
-      #endif
-
-      if (mQuality>=sqHigh)
+      if (!inForHitTest)
       {
-         if (mPointSmooth)
-            glEnable(GL_POINT_SMOOTH);
+         #ifndef NME_GLES
+         #ifndef SDL_OGL
+         wglMakeCurrent(mDC,mOGLCtx);
+         #endif
+         #endif
+
+         // Force dirty
+         mViewport.w = -1;
+         SetViewport(inRect);
+
+         glEnable(GL_BLEND);
+         glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+
+         #ifdef WEBOS
+         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
+         #endif
+
+         if (mQuality>=sqHigh)
+         {
+            if (mPointSmooth)
+               glEnable(GL_POINT_SMOOTH);
+         }
+         if (mQuality>=sqBest)
+            glEnable(GL_LINE_SMOOTH);
+         mLineWidth = 99999;
+
+         // printf("DrawArrays: %d, DrawBitmaps:%d  Buffers:%d\n", sgDrawCount, sgDrawBitmap, sgBufferCount );
+         sgDrawCount = 0;
+         sgDrawBitmap = 0;
+         sgBufferCount = 0;
+         OnBeginRender();
       }
-      if (mQuality>=sqBest)
-         glEnable(GL_LINE_SMOOTH);
-      mLineWidth = 99999;
-      // TODO: Need replacement call for GLES2
-      glEnableClientState(GL_VERTEX_ARRAY);
-      // printf("DrawArrays: %d, DrawBitmaps:%d  Buffers:%d\n", sgDrawCount, sgDrawBitmap, sgBufferCount );
-      sgDrawCount = 0;
-      sgDrawBitmap = 0;
-      sgBufferCount = 0;
    }
    void EndRender()
    {
 
+   }
+
+   virtual void OnBeginRender()
+   {
+      glEnableClientState(GL_VERTEX_ARRAY);
    }
 
 
@@ -216,9 +240,9 @@ public:
       glLoadMatrixf(matrix);
    }
 
+
    void Render(const RenderState &inState, const HardwareCalls &inCalls )
    {
-      
       glEnable( GL_BLEND );
       SetViewport(inState.mClipRect);
 
@@ -282,7 +306,12 @@ public:
             last_col = -1;
             SetModulatingTransform(inState.mColourTransform);
             if (arrays.mFlags & HardwareArrays::RADIAL )
-               SetRadialGradient(true, ((arrays.mFlags & HardwareArrays::FOCAL_MASK)>>8) / 255.0 );
+            {
+               float focus = ((arrays.mFlags & HardwareArrays::FOCAL_MASK)>>8) / 256.0;
+               if (arrays.mFlags & HardwareArrays::FOCAL_SIGN)
+                  focus = -focus;
+               SetRadialGradient(true, focus );
+            }
             else
                SetRadialGradient(0,0);
          }
@@ -293,7 +322,7 @@ public:
             SetModulatingTransform(0);
          }
 
-         if (arrays.mColours.size() == vert.size())
+         if (arrays.mColours.size() == vert.size() )
          {
             SetColourArray(&arrays.mColours[0]);
             SetModulatingTransform(inState.mColourTransform);
@@ -601,6 +630,7 @@ public:
    }
 
    Matrix mModelView;
+   ThreadId mThreadId;
 
    double mLineScaleV;
    double mLineScaleH;
@@ -652,6 +682,11 @@ public:
    {
       for(int i=0;i<gpuSIZE;i++)
          delete mProg[i];
+   }
+
+   void OnBeginRender()
+   {
+      // Do nothing
    }
 
    virtual void setOrtho(float x0,float x1, float y0, float y1)
@@ -712,7 +747,12 @@ public:
       if (mTexCoords)
       {
          if (mIsRadial)
-            id = gpuRadialGradient;
+         {
+            if (mRadialFocus!=0)
+               id = gpuRadialFocusGradient;
+            else
+               id = gpuRadialGradient;
+         }
          else if (mColourTransform && !mColourTransform->IsIdentity())
             id = gpuTextureTransform;
          else if (mColourArray)
@@ -732,11 +772,13 @@ public:
          else
             id = gpuSolid;
       }
+
       if (id==gpuNone)
          return false;
 
       if (!mProg[id])
          mProg[id] = GPUProg::create(id);
+
       if (!mProg[id])
          return false;
 
@@ -750,13 +792,16 @@ public:
       if (mTexCoords)
       {
          prog->setTexCoordData(mTexCoords);
-         mTextureSurface->Bind(*this, prog->getTextureSlot() );
+         mTextureSurface->Bind(*this,0);
       }
       if (mColourArray)
          prog->setColourData(mColourArray);
       
       if (mColourTransform)
          prog->setColourTransform(mColourTransform);
+
+      if (id==gpuRadialFocusGradient)
+         prog->setGradientFocus(mRadialFocus);
 
       return true;
    }
@@ -799,7 +844,7 @@ public:
 
       mCurrentProg->bind();
       mCurrentProg->setTint(mTint);
-      mBitmapSurface->Bind(*this, mCurrentProg->getTextureSlot() );
+      mBitmapSurface->Bind(*this,0);
       mCurrentProg->setTransform(mBitmapTrans);
       // TODO: Need replacement call for GLES2
       glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -866,9 +911,17 @@ void InitExtensions()
    }
 }
 
+
 HardwareContext *HardwareContext::CreateOpenGL(void *inWindow, void *inGLCtx, bool shaders)
 {
    HardwareContext *ctx;
+
+   #ifdef ANDROID
+   const char *version = (const char *)glGetString(GL_VERSION);
+   if (version)
+      shaders = version[10] == '2';
+   ELOG("VERSION %s (%c), pipeline = %s", version, version==0 ? '?' : version[10], shaders ? "programmable" : "fixed");
+   #endif
    
    if (shaders)
    {

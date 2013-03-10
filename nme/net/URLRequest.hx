@@ -1,5 +1,5 @@
 package nme.net;
-#if code_completion
+#if display
 
 
 /**
@@ -290,9 +290,9 @@ package nme.net;
 
 
 #elseif (cpp || neko)
-typedef URLRequest = neash.net.URLRequest;
+typedef URLRequest = native.net.URLRequest;
 #elseif js
-typedef URLRequest = jeash.net.URLRequest;
+typedef URLRequest = browser.net.URLRequest;
 #else
 typedef URLRequest = flash.net.URLRequest;
 #end

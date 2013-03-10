@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -113,9 +113,9 @@ extern class SimpleButton extends InteractiveObject {
 
 
 #elseif (cpp || neko)
-typedef SimpleButton = neash.display.SimpleButton;
+typedef SimpleButton = native.display.SimpleButton;
 #elseif js
-typedef SimpleButton = jeash.display.SimpleButton;
+typedef SimpleButton = browser.display.SimpleButton;
 #else
 typedef SimpleButton = flash.display.SimpleButton;
 #end

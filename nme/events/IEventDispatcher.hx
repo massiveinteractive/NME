@@ -1,5 +1,5 @@
 package nme.events;
-#if code_completion
+#if display
 
 
 extern interface IEventDispatcher {
@@ -12,9 +12,9 @@ extern interface IEventDispatcher {
 
 
 #elseif (cpp || neko)
-typedef IEventDispatcher = neash.events.IEventDispatcher;
+typedef IEventDispatcher = native.events.IEventDispatcher;
 #elseif js
-typedef IEventDispatcher = jeash.events.IEventDispatcher;
+typedef IEventDispatcher = browser.events.IEventDispatcher;
 #else
 typedef IEventDispatcher = flash.events.IEventDispatcher;
 #end

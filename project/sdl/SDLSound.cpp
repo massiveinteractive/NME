@@ -126,9 +126,6 @@ public:
       mDynamicChunk.abuf = (Uint8 *)mDynamicBuffer;
       mDynamicChunk.alen = BUF_SIZE * sizeof(short) * STEREO_SAMPLES; // bytes
       mDynamicChunk.volume = MIX_MAX_VOLUME;
-	  #ifndef WEBOS
-	   mDynamicChunk.length_ticks = 0;
-	  #endif
       mDynamicFillPos = 0;
       mDynamicStartPos = 0;
       mDynamicDataDue = 0;
@@ -310,6 +307,19 @@ public:
          // ELOG("Error %s (%s)", mError.c_str(), name );
       }
    }
+   
+   SDLSound(unsigned char *inData, int len)
+   {
+      IncRef();
+
+      mChunk = Mix_LoadWAV_RW(SDL_RWFromMem(inData, len), 1);
+      if ( mChunk == NULL )
+      {
+         mError = SDL_GetError();
+         // ELOG("Error %s (%s)", mError.c_str(), name );
+      }
+   }
+   
    ~SDLSound()
    {
       if (mChunk)
@@ -323,7 +333,6 @@ public:
       return 0.0;
       #else
 	  return 0.0;
-      //return mChunk->length_ticks;
       #endif
    }
    // Will return with one ref...
@@ -362,10 +371,21 @@ public:
          mPlaying = true;
          sUsedMusic = this;
          sDoneMusic = false;
+		 mStartTime = SDL_GetTicks ();
+		 mLength = 0;
          IncRef();
          Mix_PlayMusic( mMusic, inLoops<0 ? -1 : inLoops==0 ? 0 : inLoops-1 );
          Mix_VolumeMusic( inTransform.volume*MIX_MAX_VOLUME );
-         // Mix_SetPanning
+         if (inStartTime > 0)
+		 {
+			 // this is causing crash errors
+			 
+			 //Mix_RewindMusic();
+			 //int seconds = inStartTime / 1000;
+			 //Mix_SetMusicPosition(seconds); 
+			 //mStartTime = SDL_GetTicks () - inStartTime;
+		 }
+         // Mix_SetPanning not available for music
       }
    }
    ~SDLMusicChannel()
@@ -377,6 +397,7 @@ public:
    {
       if (mPlaying && (sDoneMusic || (sUsedMusic!=this)) )
       {
+		 mLength = SDL_GetTicks () - mStartTime;
          mPlaying = false;
          if (sUsedMusic == this)
          {
@@ -394,7 +415,7 @@ public:
    }
    double getLeft() { return 1; }
    double getRight() { return 1; }
-   double getPosition() { return 1; }
+   double getPosition() { return mPlaying ? SDL_GetTicks() - mStartTime : mLength; }
    void stop() 
    {
       if (mMusic)
@@ -408,6 +429,8 @@ public:
 
    bool      mPlaying;
    Object    *mSound;
+   int       mStartTime;
+   int       mLength;
    Mix_Music *mMusic;
 };
 
@@ -431,6 +454,18 @@ public:
       {
          mError = SDL_GetError();
          ELOG("Error in music %s (%s)", mError.c_str(), name );
+      }
+   }
+   
+   SDLMusic(unsigned char *inData, int len)
+   {
+      IncRef();
+
+      mMusic = Mix_LoadMUS_RW(SDL_RWFromMem(inData, len));
+      if ( mMusic == NULL )
+      {
+         mError = SDL_GetError();
+         ELOG("Error in music with len (%d)", len );
       }
    }
    ~SDLMusic()
@@ -480,12 +515,12 @@ Sound *Sound::Create(const std::string &inFilename,bool inForceMusic)
 Sound *Sound::Create(unsigned char *inData, int len, bool inForceMusic) {
    if (!Init())
       return 0;
-   Sound *sound=0;/* = inForceMusic ? 0 :  new SDLSound(inFilename);
+   Sound *sound = inForceMusic ? 0 :  new SDLSound(inData, len);
    if (!sound || !sound->ok())
    {
       if (sound) sound->DecRef();
-      sound = new SDLMusic(inFilename);
-   }*/
+      sound = new SDLMusic(inData, len);
+   }
    return sound;
 }
 

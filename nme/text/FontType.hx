@@ -1,5 +1,5 @@
 package nme.text;
-#if code_completion
+#if display
 
 
 /**
@@ -49,9 +49,9 @@ package nme.text;
 
 
 #elseif (cpp || neko)
-typedef FontType = neash.text.FontType;
+typedef FontType = native.text.FontType;
 #elseif js
-typedef FontType = jeash.text.FontType;
+typedef FontType = browser.text.FontType;
 #else
 typedef FontType = flash.text.FontType;
 #end

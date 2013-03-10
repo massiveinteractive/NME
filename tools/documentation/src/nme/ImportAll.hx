@@ -18,6 +18,7 @@ import nme.display.BitmapDataChannel;
 import nme.display.BitmapInt32;
 import nme.display.BlendMode;
 import nme.display.CapsStyle;
+import nme.display.DirectRenderer;
 import nme.display.DisplayObject;
 import nme.display.DisplayObjectContainer;
 import nme.display.FPS;
@@ -38,6 +39,7 @@ import nme.display.Loader;
 import nme.display.LoaderInfo;
 import nme.display.ManagedStage;
 import nme.display.MovieClip;
+import nme.display.OpenGLView;
 import nme.display.PixelSnapping;
 import nme.display.Shape;
 import nme.display.SimpleButton;
@@ -48,11 +50,7 @@ import nme.display.StageAlign;
 import nme.display.StageDisplayState;
 import nme.display.StageQuality;
 import nme.display.StageScaleMode;
-
-#if (cpp || neko)
 import nme.display.Tilesheet;
-#end
-
 import nme.display.TriangleCulling;
 import nme.errors.ArgumentError;
 import nme.errors.EOFError;
@@ -95,6 +93,7 @@ import nme.geom.Point;
 import nme.geom.Rectangle;
 import nme.geom.Transform;
 import nme.geom.Vector3D;
+import nme.gl.GL;
 import nme.Lib;
 import nme.Loader;
 import nme.media.ID3Info;
@@ -132,9 +131,12 @@ import nme.ui.Keyboard;
 import nme.ui.Mouse;
 import nme.ui.Multitouch;
 import nme.ui.MultitouchInputMode;
+import nme.utils.ArrayBuffer;
+import nme.utils.ArrayBufferView;
 import nme.utils.ByteArray;
 import nme.utils.CompressionAlgorithm;
 import nme.utils.Endian;
+import nme.utils.Float32Array;
 import nme.utils.IDataInput;
 import nme.utils.Timer;
 import nme.utils.WeakRef;

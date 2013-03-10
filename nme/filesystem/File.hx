@@ -1,5 +1,5 @@
 package nme.filesystem;
-#if code_completion
+#if display
 
 
 /**
@@ -348,5 +348,5 @@ extern class File
 
 
 #elseif (cpp || neko)
-typedef File = neash.filesystem.File;
+typedef File = native.filesystem.File;
 #end

@@ -1,5 +1,5 @@
 package nme.feedback;
-#if code_completion
+#if display
 
 
 extern class Haptic
@@ -9,5 +9,5 @@ extern class Haptic
 
 
 #elseif (cpp || neko)
-typedef Haptic = neash.feedback.Haptic;
+typedef Haptic = native.feedback.Haptic;
 #end

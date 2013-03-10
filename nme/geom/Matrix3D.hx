@@ -1,5 +1,5 @@
 package nme.geom;
-#if code_completion
+#if display
 
 
 /**
@@ -133,9 +133,9 @@ package nme.geom;
 
 
 #elseif (cpp || neko)
-typedef Matrix3D = neash.geom.Matrix3D;
+typedef Matrix3D = native.geom.Matrix3D;
 #elseif js
-typedef Matrix3D = jeash.geom.Matrix3D;
+typedef Matrix3D = browser.geom.Matrix3D;
 #else
 typedef Matrix3D = flash.geom.Matrix3D;
 #end

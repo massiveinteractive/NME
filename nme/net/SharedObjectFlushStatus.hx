@@ -1,5 +1,5 @@
 package nme.net;
-#if code_completion
+#if display
 
 
 /**
@@ -23,9 +23,9 @@ extern class SharedObjectFlushStatus {
 
 
 #elseif (cpp || neko)
-typedef SharedObjectFlushStatus = neash.net.SharedObjectFlushStatus;
+typedef SharedObjectFlushStatus = native.net.SharedObjectFlushStatus;
 #elseif js
-typedef SharedObjectFlushStatus = jeash.net.SharedObjectFlushStatus;
+typedef SharedObjectFlushStatus = browser.net.SharedObjectFlushStatus;
 #else
 typedef SharedObjectFlushStatus = flash.net.SharedObjectFlushStatus;
 #end

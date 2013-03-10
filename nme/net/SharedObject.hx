@@ -1,5 +1,5 @@
 package nme.net;
-#if code_completion
+#if display
 
 
 /**
@@ -660,9 +660,9 @@ extern class SharedObject extends nme.events.EventDispatcher {
 
 
 #elseif (cpp || neko)
-typedef SharedObject = neash.net.SharedObject;
+typedef SharedObject = native.net.SharedObject;
 #elseif js
-typedef SharedObject = jeash.net.SharedObject;
+typedef SharedObject = browser.net.SharedObject;
 #else
 typedef SharedObject = flash.net.SharedObject;
 #end

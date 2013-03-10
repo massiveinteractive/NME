@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -36,9 +36,9 @@ package nme.display;
 
 
 #elseif (cpp || neko)
-typedef PixelSnapping = neash.display.PixelSnapping;
+typedef PixelSnapping = native.display.PixelSnapping;
 #elseif js
-typedef PixelSnapping = jeash.display.PixelSnapping;
+typedef PixelSnapping = browser.display.PixelSnapping;
 #else
 typedef PixelSnapping = flash.display.PixelSnapping;
 #end

@@ -1,5 +1,5 @@
 package nme.ui;
-#if code_completion
+#if display
 
 
 /**
@@ -1457,9 +1457,9 @@ extern class Keyboard {
 
 
 #elseif (cpp || neko)
-typedef Keyboard = neash.ui.Keyboard;
+typedef Keyboard = native.ui.Keyboard;
 #elseif js
-typedef Keyboard = jeash.ui.Keyboard;
+typedef Keyboard = browser.ui.Keyboard;
 #else
 typedef Keyboard = flash.ui.Keyboard;
 #end

@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -42,9 +42,9 @@ package nme.display;
 
 
 #elseif (cpp || neko)
-typedef InterpolationMethod = neash.display.InterpolationMethod;
+typedef InterpolationMethod = native.display.InterpolationMethod;
 #elseif js
-typedef InterpolationMethod = jeash.display.InterpolationMethod;
+typedef InterpolationMethod = browser.display.InterpolationMethod;
 #else
 typedef InterpolationMethod = flash.display.InterpolationMethod;
 #end

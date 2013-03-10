@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -987,9 +987,9 @@ extern class BitmapData implements IBitmapDrawable {
 
 
 #elseif (cpp || neko)
-typedef BitmapData = neash.display.BitmapData;
+typedef BitmapData = native.display.BitmapData;
 #elseif js
-typedef BitmapData = jeash.display.BitmapData;
+typedef BitmapData = browser.display.BitmapData;
 #else
 typedef BitmapData = flash.display.BitmapData;
 #end

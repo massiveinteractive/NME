@@ -361,17 +361,18 @@ double DisplayObject::getMouseX()
 {
    Stage *s = getStage();
    if (!s)
-      return 0;
+      s = Stage::GetCurrent();
    UserPoint p = s->getMousePos();
    UserPoint result = GetFullMatrix(true).ApplyInverse(p);
    return result.x;
+   
 }
 
 double DisplayObject::getMouseY()
 {
    Stage *s = getStage();
    if (!s)
-      return 0;
+      s = Stage::GetCurrent();
    UserPoint p = s->getMousePos();
    UserPoint result = GetFullMatrix(true).ApplyInverse(p);
    return result.y;
@@ -648,6 +649,22 @@ void DisplayObject::Unfocus()
         stage->EnablePopupKeyboard(false);
   }
 #endif
+}
+
+// --- DirectRenderer ------------------------------------------------
+
+HardwareContext *gDirectRenderContext = 0;
+
+void DirectRenderer::Render( const RenderTarget &inTarget, const RenderState &inState )
+{
+   if (inState.mPhase==rpRender && inTarget.IsHardware())
+   {
+      gDirectRenderContext = inTarget.mHardware;
+      Rect clip = inState.mClipRect;
+      clip.y = inTarget.mHardware->Height() - clip.y - clip.h;
+      onRender(renderHandle,clip,inState.mTransform);
+      gDirectRenderContext = 0;
+   }
 }
 
 
@@ -1211,7 +1228,7 @@ void DisplayObjectContainer::Render( const RenderTarget &inTarget, const RenderS
 
                if (rect.HasPixels())
                {
-                  if (inState.mPhase == rpHitTest)
+                  if (inState.mPhase == rpHitTest && obj->mouseEnabled)
                   {
                      inState.mHitResult = obj;
                      return;
@@ -1232,7 +1249,10 @@ void DisplayObjectContainer::Render( const RenderTarget &inTarget, const RenderS
 
          if (obj_state->mHitResult)
          {
-            inState.mHitResult = mouseChildren ? obj_state->mHitResult : this;
+            if(mouseChildren && obj_state->mHitResult->mouseEnabled)
+	            inState.mHitResult = obj_state->mHitResult;
+			else if(mouseEnabled)
+	            inState.mHitResult = this;
             return;
          }
       }
@@ -1428,7 +1448,7 @@ public:
    {
       mSurface = inStage->GetPrimarySurface();
       mToFlip = inStage;
-      mTarget = mSurface->BeginRender( Rect(mSurface->Width(),mSurface->Height()) );
+      mTarget = mSurface->BeginRender( Rect(mSurface->Width(),mSurface->Height()),false );
       mSurface->Clear(inRGB | 0xff000000 );
    }
    int Width() const { return mSurface->Width(); }
@@ -1925,8 +1945,7 @@ DisplayObject *Stage::HitTest(UserPoint inStage,DisplayObject *inRoot,bool inRec
 {
    Surface *surface = GetPrimarySurface();
 
-   // TODO: special version that does not actually do rendering...
-   RenderTarget target = surface->BeginRender( Rect(surface->Width(),surface->Height()) );
+   RenderTarget target = surface->BeginRender( Rect(surface->Width(),surface->Height()),true );
 
    RenderState state(0, GetAA() );
    state.mClipRect = Rect( inStage.x, inStage.y, 1, 1 );

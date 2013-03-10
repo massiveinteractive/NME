@@ -1,5 +1,5 @@
 package nme.system;
-#if code_completion
+#if display
 
 
 /**
@@ -361,9 +361,9 @@ extern class Capabilities {
 
 
 #elseif (cpp || neko)
-typedef Capabilities = neash.system.Capabilities;
+typedef Capabilities = native.system.Capabilities;
 #elseif js
-typedef Capabilities = jeash.system.Capabilities;
+typedef Capabilities = browser.system.Capabilities;
 #else
 typedef Capabilities = flash.system.Capabilities;
 #end

@@ -1,5 +1,5 @@
 package nme.ui;
-#if code_completion
+#if display
 
 
 typedef Acceleration = 
@@ -10,7 +10,7 @@ typedef Acceleration =
 }
 
 #elseif (cpp || neko)
-typedef Acceleration = neash.ui.Acceleration;
+typedef Acceleration = native.ui.Acceleration;
 #elseif js
-typedef Acceleration = jeash.ui.Acceleration;
+typedef Acceleration = browser.ui.Acceleration;
 #end

@@ -1,5 +1,5 @@
 package nme.errors;
-#if code_completion
+#if display
 
 
 /**
@@ -36,9 +36,9 @@ extern class IllegalOperationError extends Error {
 
 
 #elseif (cpp || neko)
-typedef IllegalOperationError = neash.errors.IllegalOperationError;
+typedef IllegalOperationError = native.errors.IllegalOperationError;
 #elseif js
-typedef IllegalOperationError = jeash.errors.IllegalOperationError;
+typedef IllegalOperationError = browser.errors.IllegalOperationError;
 #else
 typedef IllegalOperationError = flash.errors.IllegalOperationError;
 #end

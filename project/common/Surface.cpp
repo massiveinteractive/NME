@@ -74,32 +74,49 @@ Texture *Surface::GetOrCreateTexture(HardwareContext &inHardware)
 
 // --- SimpleSurface -------------------------------------------------------
 
-SimpleSurface::SimpleSurface(int inWidth,int inHeight,PixelFormat inPixelFormat,int inByteAlign)
+SimpleSurface::SimpleSurface(int inWidth,int inHeight,PixelFormat inPixelFormat,int inByteAlign,int inGPUFormat)
 {
    mWidth = inWidth;
    mHeight = inHeight;
    mTexture = 0;
    mPixelFormat = inPixelFormat;
-   int pix_size = inPixelFormat == pfAlpha ? 1 : 4;
-   if (inByteAlign>1)
+   mGPUPixelFormat = inPixelFormat;
+
+   if (inGPUFormat==-1)
    {
-      mStride = inWidth * pix_size + inByteAlign -1;
-      mStride -= mStride % inByteAlign;
+      int pix_size = inPixelFormat == pfAlpha ? 1 : 4;
+      if (inByteAlign>1)
+      {
+         mStride = inWidth * pix_size + inByteAlign -1;
+         mStride -= mStride % inByteAlign;
+      }
+      else
+      {
+         mStride = inWidth*pix_size;
+      }
+
+      mBase = new unsigned char[mStride * mHeight+1];
+      mBase[mStride*mHeight] = 69;
    }
    else
    {
-      mStride = inWidth*pix_size;
-   }
+      mStride = 0;
+      mBase = 0;
+      if (inGPUFormat!=0)
+         mGPUPixelFormat = inGPUFormat;
 
-   mBase = new unsigned char[mStride * mHeight+1];
-   mBase[mStride*mHeight] = 69;
+      createHardwareSurface();
+   }
 }
 
 SimpleSurface::~SimpleSurface()
 {
-   if (mBase[mStride*mHeight]!=69)
-      ELOG("Image write overflow");
-   delete [] mBase;
+   if (mBase)
+   {
+      if (mBase[mStride*mHeight]!=69)
+         ELOG("Image write overflow");
+      delete [] mBase;
+   }
 }
 
 
@@ -122,6 +139,18 @@ void SimpleSurface::createHardwareSurface() {
  		GetOrCreateTexture( *nme::HardwareContext::current );
 	
 }
+
+void SimpleSurface::dumpBits()
+{ 
+   if(mBase)
+   {
+       createHardwareSurface();
+       delete [] mBase;
+       mBase = NULL;
+   }
+}
+
+
 
 
 
@@ -647,6 +676,9 @@ void SimpleSurface::BlitTo(const RenderTarget &outDest,
                      BlendMode inBlend, const BitmapCache *inMask,
                      uint32 inTint ) const
 {
+   if (!mBase)
+      return;
+
    // Translate inSrcRect src_rect to dest ...
    Rect src_rect(inPosX,inPosY, inSrcRect.w, inSrcRect.h );
    // clip ...
@@ -800,7 +832,7 @@ void SimpleSurface::BlitTo(const RenderTarget &outDest,
 
 void SimpleSurface::colorTransform(const Rect &inRect, ColorTransform &inTransform)
 {
-   if (mPixelFormat==pfAlpha)
+   if (mPixelFormat==pfAlpha || !mBase)
       return;
 
    const uint8 *ta = inTransform.GetAlphaLUT();
@@ -808,7 +840,7 @@ void SimpleSurface::colorTransform(const Rect &inRect, ColorTransform &inTransfo
    const uint8 *t1 = inTransform.GetC1LUT();
    const uint8 *t2 = inTransform.GetC2LUT();
 
-   RenderTarget target = BeginRender(inRect);
+   RenderTarget target = BeginRender(inRect,false);
 
    Rect r = target.mRect;
    for(int y=0;y<r.h;y++)
@@ -1084,6 +1116,8 @@ void SimpleSurface::StretchTo(const RenderTarget &outTarget,
 
 void SimpleSurface::Clear(uint32 inColour,const Rect *inRect)
 {
+   if (!mBase)
+      return;
    ARGB rgb(inColour | ((mPixelFormat & pfHasAlpha) ? 0 : 0xFF000000));
    if (mPixelFormat==pfAlpha)
    {
@@ -1116,11 +1150,15 @@ void SimpleSurface::Clear(uint32 inColour,const Rect *inRect)
 
 void SimpleSurface::Zero()
 {
-   memset(mBase,0,mStride * mHeight);
+   if (mBase)
+      memset(mBase,0,mStride * mHeight);
 }
 
-RenderTarget SimpleSurface::BeginRender(const Rect &inRect)
+RenderTarget SimpleSurface::BeginRender(const Rect &inRect,bool inForHitTest)
 {
+   if (!mBase)
+      return RenderTarget();
+
    Rect r =  inRect.Intersect( Rect(0,0,mWidth,mHeight) );
    if (mTexture)
       mTexture->Dirty(r);
@@ -1134,9 +1172,10 @@ void SimpleSurface::EndRender()
 
 Surface *SimpleSurface::clone()
 {
-   SimpleSurface *copy = new SimpleSurface(mWidth,mHeight,mPixelFormat);
-   for(int y=0;y<mHeight;y++)
-      memcpy(copy->mBase + copy->mStride*y, mBase+mStride*y, mWidth*(mPixelFormat==pfAlpha?1:4));
+   SimpleSurface *copy = new SimpleSurface(mWidth,mHeight,mPixelFormat,1,mBase?-1:0);
+   if (mBase)
+      for(int y=0;y<mHeight;y++)
+         memcpy(copy->mBase + copy->mStride*y, mBase+mStride*y, mWidth*(mPixelFormat==pfAlpha?1:4));
 
    copy->IncRef();
    return copy;
@@ -1145,6 +1184,9 @@ Surface *SimpleSurface::clone()
 void SimpleSurface::getPixels(const Rect &inRect,uint32 *outPixels,bool inIgnoreOrder,
       bool inLittleEndian)
 {
+   if (!mBase)
+      return;
+
    Rect r = inRect.Intersect(Rect(0,0,Width(),Height()));
    bool swap  = ((bool)(mPixelFormat & pfSwapRB) != gC0IsRed);
 
@@ -1163,7 +1205,7 @@ void SimpleSurface::getPixels(const Rect &inRect,uint32 *outPixels,bool inIgnore
       }
       else
       {
-         uint8 *a = src;
+         uint8 *a = src + 3;
          uint8 *pix = (uint8 *)outPixels;
 
          
@@ -1190,6 +1232,7 @@ void SimpleSurface::getPixels(const Rect &inRect,uint32 *outPixels,bool inIgnore
          // Must output big-endian, while memory is stored little-endian
          else
          {
+            a = src;
             if (!swap)
             {
                for(int x=0;x<r.w;x++)
@@ -1229,6 +1272,9 @@ void SimpleSurface::getPixels(const Rect &inRect,uint32 *outPixels,bool inIgnore
 
 void SimpleSurface::getColorBoundsRect(int inMask, int inCol, bool inFind, Rect &outRect)
 {
+   if (!mBase)
+      return;
+
    int w = Width();
    int h = Height();
 
@@ -1275,6 +1321,8 @@ void SimpleSurface::getColorBoundsRect(int inMask, int inCol, bool inFind, Rect 
 void SimpleSurface::setPixels(const Rect &inRect,const uint32 *inPixels,bool inIgnoreOrder,
         bool inLittleEndian)
 {
+   if (!mBase)
+      return;
    Rect r = inRect.Intersect(Rect(0,0,Width(),Height()));
    mVersion++;
    if (mTexture)
@@ -1348,7 +1396,7 @@ void SimpleSurface::setPixels(const Rect &inRect,const uint32 *inPixels,bool inI
 
 uint32 SimpleSurface::getPixel(int inX,int inY)
 {
-   if (inX<0 || inY<0 || inX>=mWidth || inY>=mHeight)
+   if (inX<0 || inY<0 || inX>=mWidth || inY>=mHeight || !mBase)
       return 0;
 
    if (mPixelFormat==pfAlpha)
@@ -1362,7 +1410,7 @@ uint32 SimpleSurface::getPixel(int inX,int inY)
 
 void SimpleSurface::setPixel(int inX,int inY,uint32 inRGBA,bool inAlphaToo)
 {
-   if (inX<0 || inY<0 || inX>=mWidth || inY>=mHeight)
+   if (inX<0 || inY<0 || inX>=mWidth || inY>=mHeight || !mBase)
       return;
 
    mVersion++;
@@ -1394,7 +1442,7 @@ void SimpleSurface::setPixel(int inX,int inY,uint32 inRGBA,bool inAlphaToo)
 
 void SimpleSurface::scroll(int inDX,int inDY)
 {
-   if (inDX==0 && inDY==0) return;
+   if (inDX==0 && inDY==0 || !mBase) return;
 
    Rect src(0,0,mWidth,mHeight);
    src = src.Intersect( src.Translated(inDX,inDY) ).Translated(-inDX,-inDY);
@@ -1414,6 +1462,7 @@ void SimpleSurface::scroll(int inDX,int inDY)
 
 void SimpleSurface::applyFilter(Surface *inSrc, const Rect &inRect, ImagePoint inOffset, Filter *inFilter)
 {
+   if (!mBase) return;
    FilterList f;
    f.push_back(inFilter);
 
@@ -1435,7 +1484,7 @@ void SimpleSurface::applyFilter(Surface *inSrc, const Rect &inRect, ImagePoint i
 
    int bpp = BytesPP();
 
-   RenderTarget t = BeginRender(dest);
+   RenderTarget t = BeginRender(dest,false);
    //printf("Copy back @ %d,%d %dx%d  + (%d,%d)\n", dest.x, dest.y, t.Width(), t.Height(), dx, dy);
    for(int y=0;y<t.Height();y++)
       memcpy((void *)(t.Row(y+dest.y)+(dest.x)*bpp), result->Row(y-dy)-dx*bpp, dest.w*bpp);
@@ -1500,9 +1549,12 @@ private:
 
 void SimpleSurface::noise(unsigned int randomSeed, unsigned int low, unsigned int high, int channelOptions, bool grayScale)
 {
+   if (!mBase)
+      return;
+
    MinstdGenerator generator(randomSeed);
 
-   RenderTarget target = BeginRender(Rect(0,0,mWidth,mHeight));
+   RenderTarget target = BeginRender(Rect(0,0,mWidth,mHeight),false);
    ARGB tmpRgb;
 
    for (int y=0;y<mHeight;y++)

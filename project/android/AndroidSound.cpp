@@ -1,16 +1,16 @@
 #include <Sound.h>
 #include <Display.h>
+#include <Utils.h>
 #include <jni.h>
 
 #include <android/log.h>
+#include "AndroidCommon.h"
 
 #undef LOGV
 #undef LOGE
 
 #define LOGV(msg,args...) __android_log_print(ANDROID_LOG_ERROR, "NME::AndroidSound", msg, ## args)
 #define LOGE(msg,args...) __android_log_print(ANDROID_LOG_ERROR, "NME::AndroidSound", msg, ## args)
-
-extern JNIEnv *GetEnv();
 
 namespace nme
 {
@@ -23,15 +23,15 @@ namespace nme
 	      	JNIEnv *env = GetEnv();
 			mStreamID = -1;
 			mSound = inSound;
+			mSoundHandle = inHandle;
+			mLoop = (loops < 1) ? 1 : loops;
 			inSound->IncRef();
-			if (inHandle>=0)
+			if (inHandle >= 0)
 			{
 			   	jclass cls = env->FindClass("org/haxe/nme/Sound");
 	         	jmethodID mid = env->GetStaticMethodID(cls, "playSound", "(IDDI)I");
-	         	if (mid > 0)
-			   	{
-					// LOGV("Android Sound Channel found play method");
-					mStreamID = env->CallStaticIntMethod(cls, mid, inHandle, inTransform.volume*((1-inTransform.pan)/2), inTransform.volume*((inTransform.pan+1)/2), loops );
+	         	if (mid > 0) {
+					mStreamID = env->CallStaticIntMethod(cls, mid, inHandle, inTransform.volume*((1-inTransform.pan)/2), inTransform.volume*((inTransform.pan+1)/2), mLoop );
 			   	}
 			}
 	    }
@@ -43,7 +43,12 @@ namespace nme
 
 		bool isComplete()
 		{
-			return true;
+			JNIEnv *env = GetEnv();
+		   	jclass cls = env->FindClass("org/haxe/nme/Sound");
+         	jmethodID mid = env->GetStaticMethodID(cls, "getSoundComplete", "(III)Z");
+         	if (mid > 0) {
+				return env->CallStaticIntMethod(cls, mid, mSoundHandle, mStreamID, mLoop);
+		   	}
 		}
 
 		double getLeft()
@@ -58,6 +63,12 @@ namespace nme
 
 		double getPosition()
 		{
+			JNIEnv *env = GetEnv();
+		   	jclass cls = env->FindClass("org/haxe/nme/Sound");
+         	jmethodID mid = env->GetStaticMethodID(cls, "getSoundPosition", "(II)I");
+         	if (mid > 0) {
+				return env->CallStaticIntMethod(cls, mid, mSoundHandle, mStreamID, mLoop);
+		   	}
 		}
 
 		void stop()
@@ -79,6 +90,8 @@ namespace nme
 
 		Object *mSound;
 		int mStreamID;
+		int mSoundHandle;
+		int mLoop;
 	};
 
 	SoundChannel *SoundChannel::Create(const ByteArray &inBytes,const SoundTransform &inTransform)
@@ -197,9 +210,9 @@ namespace nme
 			MODE_SOUND_ID,
 			MODE_MUSIC_PATH,
 		};
-
-	public:
-		AndroidSound(const std::string &inPath, bool inForceMusic)
+		
+	private:
+		void loadWithPath(const std::string &inPath, bool inForceMusic)
 		{
 			JNIEnv *env = GetEnv();
 			IncRef();
@@ -207,7 +220,6 @@ namespace nme
 			mMode = MODE_UNKNOWN;
 			handleID = -1;
 			mLength = 0;
-			mManagerID = getSoundPoolID();
 			mSoundPath = inPath;
 
 			jclass cls = env->FindClass("org/haxe/nme/Sound");
@@ -226,6 +238,27 @@ namespace nme
 
 			if (handleID < 0)
 				mMode = MODE_MUSIC_PATH;
+		}
+
+	public:
+		AndroidSound(const std::string &inPath, bool inForceMusic)
+		{
+			loadWithPath(inPath, inForceMusic);
+		}
+		
+		AndroidSound(unsigned char *inData, int len, bool inForceMusic)
+		{
+			JNIEnv *env = GetEnv();
+
+			jbyteArray data = env->NewByteArray(len);
+			env->SetByteArrayRegion(data, 0, len, (const jbyte *)inData);
+
+			jclass cls = env->FindClass("org/haxe/nme/Sound");	
+			jmethodID mid = env->GetStaticMethodID(cls, "getSoundPathByByteArray", "([B)Ljava/lang/String;");
+			jstring jname = (jstring)env->CallStaticObjectMethod(cls, mid, data);
+			
+			std::string inPath = std::string(env->GetStringUTFChars(jname, NULL));
+			loadWithPath(inPath, inForceMusic);
 		}
 
 		void reloadSound()
@@ -261,29 +294,11 @@ namespace nme
 	   
 	    void close()  { }
 
-		int getSoundPoolID()
-		{
-			JNIEnv *env = GetEnv();
-			jclass cls = env->FindClass("org/haxe/nme/Sound");
-			jmethodID mid = env->GetStaticMethodID(cls, "getSoundPoolID", "()I");
-			if (mid > 0) {
-				return env->CallStaticIntMethod(cls, mid);
-			}
-			return 0;
-		}
-
 		SoundChannel *openChannel(double startTime, int loops, const SoundTransform &inTransform)
 		{
 			switch (mMode) {
 				case MODE_SOUND_ID:
-					{
-						int mid = getSoundPoolID();
-						if (mid != mManagerID) {
-							mManagerID = mid;
-							reloadSound();
-						}
-						return new AndroidSoundChannel(this, handleID, startTime, loops, inTransform);
-					}
+					return new AndroidSoundChannel(this, handleID, startTime, loops, inTransform);
 					break;
 				case MODE_MUSIC_PATH:
 				default:
@@ -294,17 +309,18 @@ namespace nme
 
 		int handleID;
 		int mLength;
-		int mManagerID;
+		// int mManagerID;
 		std::string mSoundPath;
 		SoundMode mMode;
 	};
 
 	Sound *Sound::Create(const std::string &inFilename,bool inForceMusic)
 	{
-		return new AndroidSound(inFilename,inForceMusic);
+		return new AndroidSound(inFilename, inForceMusic);
 	}
 
 	Sound *Sound::Create(unsigned char *inData, int len, bool inForceMusic)
 	{
+		return new AndroidSound(inData, len, inForceMusic);
 	}
 }

@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -704,9 +704,9 @@ extern class Loader extends DisplayObjectContainer {
 
 
 #elseif (cpp || neko)
-typedef Loader = neash.display.Loader;
+typedef Loader = native.display.Loader;
 #elseif js
-typedef Loader = jeash.display.Loader;
+typedef Loader = browser.display.Loader;
 #else
 typedef Loader = flash.display.Loader;
 #end

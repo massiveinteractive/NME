@@ -1,5 +1,5 @@
 package nme.errors;
-#if code_completion
+#if display
 
 
 @:native("TypeError") extern class TypeError extends Error {
@@ -7,9 +7,9 @@ package nme.errors;
 
 
 #elseif (cpp || neko)
-typedef TypeError = neash.errors.TypeError;
+typedef TypeError = native.errors.TypeError;
 #elseif js
-typedef TypeError = jeash.errors.TypeError;
+typedef TypeError = browser.errors.TypeError;
 #else
 typedef TypeError = flash.errors.TypeError;
 #end

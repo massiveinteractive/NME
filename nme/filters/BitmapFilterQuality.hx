@@ -1,5 +1,5 @@
 package nme.filters;
-#if code_completion
+#if display
 
 
 /**
@@ -26,9 +26,9 @@ extern class BitmapFilterQuality {
 
 
 #elseif (cpp || neko)
-typedef BitmapFilterQuality = neash.filters.BitmapFilterQuality;
+typedef BitmapFilterQuality = native.filters.BitmapFilterQuality;
 #elseif js
-typedef BitmapFilterQuality = jeash.filters.BitmapFilterQuality;
+typedef BitmapFilterQuality = browser.filters.BitmapFilterQuality;
 #else
 typedef BitmapFilterQuality = flash.filters.BitmapFilterQuality;
 #end

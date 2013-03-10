@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -32,9 +32,9 @@ extern class Shape extends DisplayObject {
 
 
 #elseif (cpp || neko)
-typedef Shape = neash.display.Shape;
+typedef Shape = native.display.Shape;
 #elseif js
-typedef Shape = jeash.display.Shape;
+typedef Shape = browser.display.Shape;
 #else
 typedef Shape = flash.display.Shape;
 #end

@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -209,9 +209,9 @@ package nme.display;
 
 
 #elseif (cpp || neko)
-typedef GraphicsStroke = neash.display.GraphicsStroke;
+typedef GraphicsStroke = native.display.GraphicsStroke;
 #elseif js
-typedef GraphicsStroke = jeash.display.GraphicsStroke;
+typedef GraphicsStroke = browser.display.GraphicsStroke;
 #else
 typedef GraphicsStroke = flash.display.GraphicsStroke;
 #end

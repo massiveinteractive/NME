@@ -1,5 +1,5 @@
 package nme.system;
-#if code_completion
+#if display
 
 
 /**
@@ -200,9 +200,9 @@ extern class System {
 
 
 #elseif (cpp || neko)
-typedef System = neash.system.System;
+typedef System = native.system.System;
 #elseif js
-typedef System = jeash.system.System;
+typedef System = browser.system.System;
 #else
 typedef System = flash.system.System;
 #end

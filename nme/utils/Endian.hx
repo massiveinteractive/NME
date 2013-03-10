@@ -1,5 +1,5 @@
 package nme.utils;
-#if code_completion
+#if display
 
 
 /**
@@ -23,9 +23,9 @@ package nme.utils;
 
 
 #elseif (cpp || neko)
-typedef Endian = neash.utils.Endian;
+typedef Endian = native.utils.Endian;
 #elseif js
-typedef Endian = jeash.utils.Endian;
+typedef Endian = browser.utils.Endian;
 #else
 typedef Endian = flash.utils.Endian;
 #end

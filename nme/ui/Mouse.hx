@@ -1,5 +1,5 @@
 package nme.ui;
-#if code_completion
+#if display
 
 
 /**
@@ -90,9 +90,9 @@ extern class Mouse {
 
 
 #elseif (cpp || neko)
-typedef Mouse = neash.ui.Mouse;
+typedef Mouse = native.ui.Mouse;
 #elseif js
-typedef Mouse = jeash.ui.Mouse;
+typedef Mouse = browser.ui.Mouse;
 #else
 typedef Mouse = flash.ui.Mouse;
 #end

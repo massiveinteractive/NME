@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -778,9 +778,9 @@ extern class Stage extends DisplayObjectContainer {
 
 
 #elseif (cpp || neko)
-typedef Stage = neash.display.Stage;
+typedef Stage = native.display.Stage;
 #elseif js
-typedef Stage = jeash.display.Stage;
+typedef Stage = browser.display.Stage;
 #else
 typedef Stage = flash.display.Stage;
 #end

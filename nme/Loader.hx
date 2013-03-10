@@ -1,5 +1,5 @@
 package nme;
-#if code_completion
+#if display
 
 
 extern class Loader
@@ -11,5 +11,5 @@ extern class Loader
 
 
 #elseif (cpp || neko)
-typedef Loader = neash.Loader;
+typedef Loader = native.Loader;
 #end

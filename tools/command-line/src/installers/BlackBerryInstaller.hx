@@ -24,11 +24,11 @@ class BlackBerryInstaller extends InstallerBase {
 		
 		if (debug) {
 			
-			FileHelper.copyIfNewer (buildDirectory + "/blackberry/obj/ApplicationMain-debug", buildDirectory + "/blackberry/bin/" + defines.get ("APP_FILE"));
+			FileHelper.copyIfNewer (buildDirectory + "/blackberry/obj/ApplicationMain-debug", buildDirectory + "/blackberry/bin/" + defines.get ("APP_FILE_SAFE"));
 			
 		} else {
 			
-			FileHelper.copyIfNewer (buildDirectory + "/blackberry/obj/ApplicationMain", buildDirectory + "/blackberry/bin/" + defines.get ("APP_FILE"));
+			FileHelper.copyIfNewer (buildDirectory + "/blackberry/obj/ApplicationMain", buildDirectory + "/blackberry/bin/" + defines.get ("APP_FILE_SAFE"));
 			
 		}
 		
@@ -69,7 +69,7 @@ class BlackBerryInstaller extends InstallerBase {
 		super.generateContext ();
 		
 		context.CPP_DIR = buildDirectory + "/blackberry/obj";
-		context.BLACKBERRY_AUTHOR_ID = BlackBerryHelper.getAuthorID (buildDirectory + "/blackberry");
+		context.BLACKBERRY_AUTHOR_ID = BlackBerryHelper.processDebugToken (buildDirectory + "/blackberry").authorID;
 		
 		updateIcon ();
 		
@@ -191,7 +191,7 @@ class BlackBerryInstaller extends InstallerBase {
 	private function updateIcon ():Void {
 		
 		context.ICONS = [];
-		var sizes = [ 86, 150 ];
+		var sizes = [ 150, 86 ];
 		
 		for (size in sizes) {
 			
@@ -201,7 +201,7 @@ class BlackBerryInstaller extends InstallerBase {
 				
 				var tmpDir = buildDirectory + "/blackberry/haxe";
 				PathHelper.mkdir (tmpDir);
-				var tmp_name = tmpDir + "/icon_" + size + ".png";
+				var tmp_name = tmpDir + "/icon-" + size + ".png";
 				
 				if (icons.updateIcon (size, size, tmp_name)) {
 					
@@ -213,8 +213,8 @@ class BlackBerryInstaller extends InstallerBase {
 			
 			if (icon_name != "") {
 				
-				assets.push (new Asset (icon_name, "icon_" + size + ".png", Asset.TYPE_IMAGE, "icon_" + size + ".png", "1"));
-				context.ICONS.push ("icon_" + size + ".png");
+				assets.push (new Asset (icon_name, "icon-" + size + ".png", Asset.TYPE_IMAGE, "icon-" + size + ".png", "1"));
+				context.ICONS.push ("icon-" + size + ".png");
 				context.HAS_ICON = true;
 				
 			}

@@ -1,5 +1,5 @@
 package nme.text;
-#if code_completion
+#if display
 
 
 /**
@@ -21,9 +21,9 @@ package nme.text;
 
 
 #elseif (cpp || neko)
-typedef TextFieldType = neash.text.TextFieldType;
+typedef TextFieldType = native.text.TextFieldType;
 #elseif js
-typedef TextFieldType = jeash.text.TextFieldType;
+typedef TextFieldType = browser.text.TextFieldType;
 #else
 typedef TextFieldType = flash.text.TextFieldType;
 #end

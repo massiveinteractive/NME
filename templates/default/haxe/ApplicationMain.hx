@@ -65,14 +65,22 @@ class ApplicationMain
 				}
 				else
 				{
-					nme.Lib.current.addChild(cast (Type.createInstance(::APP_MAIN::, []), nme.display.DisplayObject));	
+					var instance = Type.createInstance(::APP_MAIN::, []);
+					#if nme
+					if (Std.is (instance, nme.display.DisplayObject)) {
+						nme.Lib.current.addChild(cast instance);
+					}
+					#end
 				}
 			},
 			::WIN_WIDTH::, ::WIN_HEIGHT::, 
 			::WIN_FPS::, 
 			::WIN_BACKGROUND::,
 			(::WIN_HARDWARE:: ? nme.Lib.HARDWARE : 0) |
-			(::WIN_SHADERS:: ? nme.Lib.ALLOW_SHADERS : 0) |
+			(::WIN_ALLOW_SHADERS:: ? nme.Lib.ALLOW_SHADERS : 0) |
+			(::WIN_REQUIRE_SHADERS:: ? nme.Lib.REQUIRE_SHADERS : 0) |
+			(::WIN_DEPTH_BUFFER:: ? nme.Lib.DEPTH_BUFFER : 0) |
+			(::WIN_STENCIL_BUFFER:: ? nme.Lib.STENCIL_BUFFER : 0) |
 			(::WIN_RESIZABLE:: ? nme.Lib.RESIZABLE : 0) |
 			(::WIN_BORDERLESS:: ? nme.Lib.BORDERLESS : 0) |
 			(::WIN_VSYNC:: ? nme.Lib.VSYNC : 0) |
@@ -87,6 +95,15 @@ class ApplicationMain
 		#end
 		
 	}
+	
+	
+	#if neko
+	public static function __init__ () {
+		
+		untyped $loader.path = $array ("@executable_path/", $loader.path);
+		
+	}
+	#end
 	
 	
 	public static function getAsset(inName:String):Dynamic

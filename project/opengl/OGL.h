@@ -1,7 +1,7 @@
 #ifndef INCLUDED_OGL_H
 #define INCLUDED_OGL_H
 
-#if defined(WEBOS) || defined(BLACKBERRY) || defined(ANDROID) || defined(GPH)
+#if defined(WEBOS) || defined(BLACKBERRY) || defined(ANDROID) || defined(GPH) || defined(RASPBERRYPI)
 
 #define NME_GLES
 
@@ -15,16 +15,41 @@
 
 #include <OpenGLES/ES1/gl.h>
 #include <OpenGLES/ES1/glext.h>
+#include <OpenGLES/ES2/gl.h>
+#include <OpenGLES/ES2/glext.h>
+#define ALLOW_OGL2
 
 //typedef CAEAGLLayer *WinDC;
 //typedef EAGLContext *GLCtx;
 #define NME_GLES
 
 #elif !defined(HX_WINDOWS)
+
 // Mac/Linux....
+#define GL_GLEXT_PROTOTYPES
 #include <SDL_opengl.h>
 #define FORCE_NON_PO2
+
+#ifndef HX_LINUX
 #define ALLOW_OGL2
+#endif
+
+  #ifdef HX_MACOS
+  #define glBindFramebuffer glBindFramebufferEXT
+  #define glBindRenderbuffer glBindRenderbufferEXT
+  #define glGenFramebuffers glGenFramebuffersEXT
+  #define glGenRenderbuffers glGenRenderbuffersEXT
+  #define glFramebufferRenderbuffer glFramebufferRenderbufferEXT
+  #define glFramebufferTexture2D glFramebufferTexture2DEXT
+  #define glRenderbufferStorage glRenderbufferStorageEXT
+  #define glCheckFramebufferStatus glCheckFramebufferStatusEXT
+  #define glCheckFramebufferStatus glCheckFramebufferStatusEXT
+  #define glGenerateMipmap glGenerateMipmapEXT
+  #define glGetFramebufferAttachmentParameteriv glGetFramebufferAttachmentParameterivEXT
+  #define glGetRenderbufferParameteriv glGetRenderbufferParameterivEXT
+  #define glIsFramebuffer glIsFramebufferEXT
+  #define glIsRenderbuffer glIsRenderbufferEXT
+  #endif
 
 #else
 
@@ -34,6 +59,10 @@
 //#define FORCE_NON_PO2
 typedef ptrdiff_t GLsizeiptrARB;
 #define NEED_EXTENSIONS
+
+
+#define ALLOW_OGL2
+#include <SDL_opengl.h>
 
 #endif
 
@@ -90,6 +119,7 @@ typedef void *GLCtx;
 #define GL_SHADER_SOURCE_LENGTH       0x8B88
 #define GL_VERTEX_SHADER              0x8B31
 #define GL_FRAGMENT_SHADER            0x8B30
+#define GL_TEXTURE0                   0x84C0
 #endif
 
 
@@ -132,6 +162,7 @@ enum GPUProgID
    gpuBitmap,
    gpuBitmapAlpha,
    gpuRadialGradient,
+   gpuRadialFocusGradient,
    gpuSIZE,
 };
 
@@ -154,7 +185,7 @@ public:
 
    virtual void setTransform(const Trans4x4 &inTrans) = 0;
    virtual void setTint(unsigned int inColour) = 0;
-   //virtual void setGradientFocus(float inFocus) = 0;
+   virtual void setGradientFocus(float inFocus) = 0;
    virtual void finishDrawing() = 0;
 };
 

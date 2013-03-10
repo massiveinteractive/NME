@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -38,9 +38,9 @@ package nme.display;
 
 
 #elseif (cpp || neko)
-typedef GraphicsSolidFill = neash.display.GraphicsSolidFill;
+typedef GraphicsSolidFill = native.display.GraphicsSolidFill;
 #elseif js
-typedef GraphicsSolidFill = jeash.display.GraphicsSolidFill;
+typedef GraphicsSolidFill = browser.display.GraphicsSolidFill;
 #else
 typedef GraphicsSolidFill = flash.display.GraphicsSolidFill;
 #end

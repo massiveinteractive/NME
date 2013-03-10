@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -77,9 +77,9 @@ extern class Bitmap extends DisplayObject {
 
 
 #elseif (cpp || neko)
-typedef Bitmap = neash.display.Bitmap;
+typedef Bitmap = native.display.Bitmap;
 #elseif js
-typedef Bitmap = jeash.display.Bitmap;
+typedef Bitmap = browser.display.Bitmap;
 #else
 typedef Bitmap = flash.display.Bitmap;
 #end

@@ -1,5 +1,5 @@
 package nme.errors;
-#if code_completion
+#if display
 
 
 /**
@@ -20,9 +20,9 @@ extern class EOFError/* extends IOError*/ {
 
 
 #elseif (cpp || neko)
-typedef EOFError = neash.errors.EOFError;
+typedef EOFError = native.errors.EOFError;
 #elseif js
-typedef EOFError = jeash.errors.EOFError;
+typedef EOFError = browser.errors.EOFError;
 #else
 typedef EOFError = flash.errors.EOFError;
 #end

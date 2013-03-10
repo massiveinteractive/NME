@@ -1,0 +1,12 @@
+-main CommandLineTools
+-neko command-line.n
+-cp src
+-cp ../helpers
+-cp ../project
+-lib nme
+-lib swf
+-lib svg
+-lib xfl
+--remap flash:nme
+-D hxssl
+-D haxe3

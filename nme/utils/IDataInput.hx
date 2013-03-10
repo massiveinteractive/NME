@@ -1,5 +1,5 @@
 package nme.utils;
-#if code_completion
+#if display
 
 
 extern interface IDataInput {
@@ -24,9 +24,9 @@ extern interface IDataInput {
 
 
 #elseif (cpp || neko)
-typedef IDataInput = neash.utils.IDataInput;
+typedef IDataInput = native.utils.IDataInput;
 #elseif js
-typedef IDataInput = jeash.utils.IDataInput;
+typedef IDataInput = browser.utils.IDataInput;
 #else
 typedef IDataInput = flash.utils.IDataInput;
 #end

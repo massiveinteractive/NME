@@ -1,5 +1,5 @@
 package nme.events;
-#if code_completion
+#if display
 
 
 /**
@@ -52,9 +52,9 @@ extern class IOErrorEvent extends ErrorEvent {
 
 
 #elseif (cpp || neko)
-typedef IOErrorEvent = neash.events.IOErrorEvent;
+typedef IOErrorEvent = native.events.IOErrorEvent;
 #elseif js
-typedef IOErrorEvent = jeash.events.IOErrorEvent;
+typedef IOErrorEvent = browser.events.IOErrorEvent;
 #else
 typedef IOErrorEvent = flash.events.IOErrorEvent;
 #end

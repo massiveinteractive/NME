@@ -1,5 +1,5 @@
 package nme.media;
-#if code_completion
+#if display
 
 
 /**
@@ -58,9 +58,9 @@ package nme.media;
 
 
 #elseif (cpp || neko)
-typedef SoundChannel = neash.media.SoundChannel;
+typedef SoundChannel = native.media.SoundChannel;
 #elseif js
-typedef SoundChannel = jeash.media.SoundChannel;
+typedef SoundChannel = browser.media.SoundChannel;
 #else
 typedef SoundChannel = flash.media.SoundChannel;
 #end

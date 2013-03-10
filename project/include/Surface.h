@@ -54,6 +54,7 @@ public:
    virtual unsigned int GetFlags() const { return mFlags; }
    virtual void SetFlags(unsigned int inFlags) { mFlags = inFlags; }
    virtual PixelFormat Format()  const = 0;
+   virtual int         GPUFormat() const { return Format(); }
    virtual const uint8 *GetBase() const = 0;
    virtual int GetStride() const = 0;
 
@@ -62,12 +63,12 @@ public:
    virtual void createHardwareSurface() { }
    virtual void destroyHardwareSurface() { }
    virtual void dumpBits() { /*printf("Dumping bits from Surface\n");*/  }
-   virtual void setFormat( PixelFormat pf ) {}
+   virtual void setGPUFormat( PixelFormat pf ) {}
 
    int BytesPP() const { return Format()==pfAlpha ? 1 : 4; }
    const uint8 *Row(int inY) const { return GetBase() + GetStride()*inY; }
 
-   virtual RenderTarget BeginRender(const Rect &inRect)=0;
+   virtual RenderTarget BeginRender(const Rect &inRect,bool inForHitTest=false)=0;
    virtual void EndRender()=0;
 
    virtual void BlitTo(const RenderTarget &outTarget, const Rect &inSrcRect,int inPosX, int inPosY,
@@ -114,9 +115,9 @@ class AutoSurfaceRender
    RenderTarget mTarget;
 public:
    AutoSurfaceRender(Surface *inSurface) : mSurface(inSurface),
-       mTarget(inSurface->BeginRender( Rect(inSurface->Width(),inSurface->Height()) ) ) { }
+       mTarget(inSurface->BeginRender( Rect(inSurface->Width(),inSurface->Height()),false ) ) { }
    AutoSurfaceRender(Surface *inSurface,const Rect &inRect) : mSurface(inSurface),
-       mTarget(inSurface->BeginRender(inRect)) { }
+       mTarget(inSurface->BeginRender(inRect,false)) { }
    ~AutoSurfaceRender() { mSurface->EndRender(); }
    const RenderTarget &Target() { return mTarget; }
 
@@ -125,16 +126,17 @@ public:
 class SimpleSurface : public Surface
 {
 public:
-   SimpleSurface(int inWidth,int inHeight,PixelFormat inPixelFormat,int inByteAlign=4);
+   SimpleSurface(int inWidth,int inHeight,PixelFormat inPixelFormat,int inByteAlign=4,int inGPUPixelFormat=-1);
 
    int Width() const  { return mWidth; }
    int Height() const  { return mHeight; }
    PixelFormat Format() const  { return mPixelFormat; }
+   int         GPUFormat() const  { return mGPUPixelFormat; }
    void Clear(uint32 inColour,const Rect *inRect);
    void Zero();
 
 
-   RenderTarget BeginRender(const Rect &inRect);
+   RenderTarget BeginRender(const Rect &inRect,bool inForHitTest);
    void EndRender();
 
    virtual void BlitTo(const RenderTarget &outTarget, const Rect &inSrcRect,int inPosX, int inPosY,
@@ -149,7 +151,7 @@ public:
 									 int inSrcChannel, int inDestChannel ) const;
 
    virtual void colorTransform(const Rect &inRect, ColorTransform &inTransform);
-   virtual void setFormat( PixelFormat pf ) { mPixelFormat = pf; }
+   virtual void setGPUFormat( PixelFormat pf ) { mGPUPixelFormat = pf; }
    
    const uint8 *GetBase() const { return mBase; }
    int GetStride() const { return mStride; }
@@ -165,20 +167,14 @@ public:
    void createHardwareSurface();
    void destroyHardwareSurface();
    
-   void dumpBits()
-   { 
-     if(mBase)
-     {
-       delete [] mBase;
-       mBase = NULL;
-     }
-   }
+   void dumpBits();
 
 
 protected:
    int           mWidth;
    int           mHeight;
    PixelFormat   mPixelFormat;
+   int           mGPUPixelFormat;
    int           mStride;
    uint8         *mBase;
    ~SimpleSurface();
@@ -199,12 +195,15 @@ public:
    const uint8 *GetBase() const { return 0; }
    int GetStride() const { return 0; }
    void Clear(uint32 inColour,const Rect *inRect=0) { mHardware->Clear(inColour,inRect); }
-   RenderTarget BeginRender(const Rect &inRect)
+   RenderTarget BeginRender(const Rect &inRect,bool inForHitTest)
    {
-      mHardware->BeginRender(inRect);
+      mHardware->BeginRender(inRect,inForHitTest);
       return RenderTarget(inRect,mHardware);
    }
-   void EndRender() { }
+   void EndRender()
+   {
+      mHardware->EndRender();
+   }
 
    void BlitTo(const RenderTarget &outTarget, const Rect &inSrcRect,int inPosX, int inPosY,
                        BlendMode inBlend, const BitmapCache *inMask,

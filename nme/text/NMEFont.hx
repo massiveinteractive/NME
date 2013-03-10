@@ -1,5 +1,5 @@
 package nme.text;
-#if code_completion
+#if display
 
 
 import nme.display.BitmapData;
@@ -36,5 +36,5 @@ extern class NMEFont
 
 
 #elseif (cpp || neko)
-typedef NMEFont = neash.text.NMEFont;
+typedef NMEFont = native.text.NMEFont;
 #end

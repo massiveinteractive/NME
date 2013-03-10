@@ -7,15 +7,17 @@
 #include <ByteArray.h>
 
 #include <android/log.h>
+#include "AndroidCommon.h"
 
 JavaVM *gJVM=0;
+/*
 JNIEnv *GetEnv()
 {
    JNIEnv *env = 0;
    gJVM->AttachCurrentThread(&env, NULL);
    return env;
 }
-
+*/
 
 namespace nme
 {
@@ -46,7 +48,7 @@ class AndroidStage : public Stage
 public:
    AndroidStage(int inWidth,int inHeight,int inFlags) : Stage(true)
    {
-      mHardwareContext = HardwareContext::CreateOpenGL(0, 0, inFlags & wfAllowShaders);
+      mHardwareContext = HardwareContext::CreateOpenGL(0, 0, inFlags & (wfAllowShaders|wfRequireShaders));
       mHardwareContext->IncRef();
       mHardwareContext->SetWindowSize(inWidth,inHeight);
       mHardwareSurface = new HardwareSurface(mHardwareContext);
@@ -432,7 +434,7 @@ JAVA_EXPORT int JNICALL Java_org_haxe_nme_NME_onRender(JNIEnv * env, jobject obj
    return nme::GetResult();
 }
 
-JAVA_EXPORT int JNICALL Java_org_haxe_nme_NME_onNormalOrientationFound(JNIEnv * env, jobject obj, int orientation)
+JAVA_EXPORT int JNICALL Java_org_haxe_nme_NME_onNormalOrientationFound(JNIEnv * env, jobject obj, jint orientation)
 {
    int top = 0;
    gc_set_top_of_stack(&top,true);
@@ -442,7 +444,7 @@ JAVA_EXPORT int JNICALL Java_org_haxe_nme_NME_onNormalOrientationFound(JNIEnv * 
    return nme::GetResult();
 }
 
-JAVA_EXPORT int JNICALL Java_org_haxe_nme_NME_onDeviceOrientationUpdate(JNIEnv * env, jobject obj, int orientation)
+JAVA_EXPORT int JNICALL Java_org_haxe_nme_NME_onDeviceOrientationUpdate(JNIEnv * env, jobject obj, jint orientation)
 {
    int top = 0;
    gc_set_top_of_stack(&top,true);

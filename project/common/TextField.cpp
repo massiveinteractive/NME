@@ -135,7 +135,7 @@ void TextField::setDefaultTextFormat(TextFormat *inFmt)
    defaultTextFormat = inFmt;
    mLinesDirty = true;
    mGfxDirty = true;
-   if (mCharGroups.empty())
+   if (mCharGroups.empty() || (mCharGroups.size() == 1 && mCharGroups[0]->Chars() == 0))
       setText(L"");
 }
 
@@ -1455,7 +1455,8 @@ void TextField::InsertString(WString &inString)
 
 static bool IsWord(int inCh)
 {
-  return inCh<255 && (iswalpha(inCh) || isdigit(inCh) || inCh=='_');
+  return (!isspace(inCh));
+  //return inCh<255 && (iswalpha(inCh) || isdigit(inCh) || inCh=='_');
 }
 
 // Combine x,y scaling with rotation to calculate pixel coordinates for
@@ -1581,7 +1582,7 @@ void TextField::Layout(const Matrix &inMatrix)
                mLines.push_back(line);
                line.Clear();
                g.UpdateMetrics(line.mMetrics);
-               y += g.Height();
+               y += g.Height() + g.mFormat->leading;
                continue;
             }
          }
@@ -1616,7 +1617,7 @@ void TextField::Layout(const Matrix &inMatrix)
                line.mMetrics.width = last_word_x;
             }
             mLines.push_back(line);
-            y += g.Height();
+            y += g.Height() + g.mFormat->leading;
             x = gap;
             line.Clear();
             g.UpdateMetrics(line.mMetrics);

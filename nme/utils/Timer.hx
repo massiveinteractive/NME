@@ -1,5 +1,5 @@
 package nme.utils;
-#if code_completion
+#if display
 
 
 /**
@@ -106,9 +106,9 @@ extern class Timer extends nme.events.EventDispatcher {
 
 
 #elseif (cpp || neko)
-typedef Timer = neash.utils.Timer;
+typedef Timer = native.utils.Timer;
 #elseif js
-typedef Timer = jeash.utils.Timer;
+typedef Timer = browser.utils.Timer;
 #else
 typedef Timer = flash.utils.Timer;
 #end

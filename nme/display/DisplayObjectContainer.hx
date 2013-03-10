@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -353,9 +353,9 @@ extern class DisplayObjectContainer extends InteractiveObject {
 
 
 #elseif (cpp || neko)
-typedef DisplayObjectContainer = neash.display.DisplayObjectContainer;
+typedef DisplayObjectContainer = native.display.DisplayObjectContainer;
 #elseif js
-typedef DisplayObjectContainer = jeash.display.DisplayObjectContainer;
+typedef DisplayObjectContainer = browser.display.DisplayObjectContainer;
 #else
 typedef DisplayObjectContainer = flash.display.DisplayObjectContainer;
 #end

@@ -1,5 +1,5 @@
 package nme.media;
-#if code_completion
+#if display
 
 
 @:final extern class ID3Info implements Dynamic {
@@ -15,9 +15,9 @@ package nme.media;
 
 
 #elseif (cpp || neko)
-typedef ID3Info = neash.media.ID3Info;
+typedef ID3Info = native.media.ID3Info;
 #elseif js
-typedef ID3Info = jeash.media.ID3Info;
+typedef ID3Info = browser.media.ID3Info;
 #else
 typedef ID3Info = flash.media.ID3Info;
 #end

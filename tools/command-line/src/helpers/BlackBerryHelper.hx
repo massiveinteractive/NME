@@ -1,6 +1,8 @@
 package helpers;
 
 
+import haxe.io.Eof;
+import sys.io.File;
 import sys.io.Process;
 
 
@@ -15,6 +17,13 @@ class BlackBerryHelper {
 	public static function createPackage (workingDirectory:String, descriptorFile:String, targetPath:String):Void {
 		
 		var args = [ "-package", targetPath, descriptorFile ];
+		
+		if (defines.exists ("KEY_STORE") && !defines.exists ("KEY_STORE_PASSWORD")) {
+			
+			defines.set ("KEY_STORE_PASSWORD", prompt ("Keystore password", true));
+			Sys.println ("");
+			
+		}
 		
 		if (defines.exists ("KEY_STORE")) {
 			
@@ -93,6 +102,12 @@ class BlackBerryHelper {
 		
 		var args = [ "-installApp" ];
 		
+		if (targetFlags.exists ("gdb")) {
+			
+			args.push ("-debugNative");
+			
+		}
+		
 		if (run) {
 			
 			args.push ("-launchApp");
@@ -116,19 +131,61 @@ class BlackBerryHelper {
 	
 	public static function initialize (defines:Hash <String>, targetFlags:Hash <String>):Void {
 		
-		if (InstallTool.isWindows) {
+		if (defines.exists ("BLACKBERRY_NDK_ROOT") && (!defines.exists("QNX_HOST") || !defines.exists("QNX_TARGET"))) {
 			
-			binDirectory = defines.get ("BLACKBERRY_NDK_ROOT") + "/host/win32/x86/usr/bin/";
+			var fileName = defines.get ("BLACKBERRY_NDK_ROOT");
 			
-		} else if (InstallTool.isMac) {
+			if (InstallTool.isWindows) {
+				
+				fileName += "\\bbndk-env.bat";
+				
+			} else {
+				
+				fileName += "/bbndk-env.sh";
+				
+			}
 			
-			binDirectory = defines.get ("BLACKBERRY_NDK_ROOT") + "/host/macosx/x86/usr/bin/";
+			var fin = File.read (fileName, false);
 			
-		} else {
+			try {
+				
+				while (true) {
+				
+					var str = fin.readLine();
+					var split = str.split ("=");
+					var name = StringTools.trim (split[0].substr (split[0].indexOf (" ") + 1));
+					
+					switch (name) {
+					
+						case "QNX_HOST", "QNX_TARGET":
+							
+							var value = split[1];
+							
+							if (StringTools.startsWith (value, "\"")) {
+							
+								value = value.substr (1);
+								
+							}
+							
+							if (StringTools.endsWith (value, "\"")) {
+							
+								value = value.substr (0, value.length - 1);
+								
+							}
+							
+							defines.set(name,value);
+							
+					}
+					
+				}
+				
+			} catch (ex:Eof) {}
 			
-			binDirectory = defines.get ("BLACKBERRY_NDK_ROOT") + "/host/linux/x86/usr/bin/";
+			fin.close();
 			
 		}
+		
+		binDirectory = defines.get ("QNX_HOST") + "/usr/bin/";
 		
 		BlackBerryHelper.defines = defines;
 		BlackBerryHelper.targetFlags = targetFlags;
@@ -136,14 +193,21 @@ class BlackBerryHelper {
 	}
 	
 	
-	public static function getAuthorID (workingDirectory:String):String {
+	public static function processDebugToken (workingDirectory:String = ""):BlackBerryDebugToken {
+		
+		var data:BlackBerryDebugToken = { authorID: "", deviceIDs: new Array<String> () };
 		
 		if (defines.exists ("BLACKBERRY_DEBUG_TOKEN")) {
 			
 			PathHelper.mkdir (workingDirectory);
 			
 			var cacheCwd = Sys.getCwd ();
-			Sys.setCwd (workingDirectory);
+			
+			if (workingDirectory != "") {
+				
+				Sys.setCwd (workingDirectory);
+				
+			}
 			
 			var exe = binDirectory + "blackberry-nativepackager";
 			
@@ -169,7 +233,26 @@ class BlackBerryHelper {
 				if (index > -1) {
 					
 					var start = index + search.length;
-					return ret.substr (start, ret.indexOf ("\n", index) - start);
+					data.authorID = StringTools.trim (ret.substr (start, ret.indexOf ("\n", index) - start));
+					
+				}
+				
+				search = "Debug-Token-Device-Id: ";
+				var index = ret.indexOf (search);
+				
+				while (index > -1) {
+					
+					var start = index + search.length;
+					var deviceIDs = StringTools.trim (ret.substr (start, ret.indexOf ("\n", index) - start)).split (",");
+					
+					for (i in 0...deviceIDs.length) {
+						
+						deviceIDs[i] = StringTools.hex (Std.parseInt (deviceIDs[i]));
+						
+					}
+					
+					data.deviceIDs = data.deviceIDs.concat (deviceIDs);
+					index = ret.indexOf (search, index + search.length);
 					
 				}
 				
@@ -177,11 +260,34 @@ class BlackBerryHelper {
 			
 		}
 		
-		if (targetFlags.exists ("simulator")) {
+		if (data.authorID == "" && targetFlags.exists ("simulator")) {
 			
-			return "gYAAgF-DMYiFsOQ3U6QvuW1fQDY";
+			data.authorID = "gYAAgF-DMYiFsOQ3U6QvuW1fQDY";
 			
-		} else {
+		}
+		
+		return data;
+		
+	}
+	
+	
+	private static function prompt (name:String, ?passwd:Bool):String {
+		
+		Sys.print (name + ": ");
+		
+		if (passwd) {
+			var s = new StringBuf ();
+			var c;
+			while ((c = Sys.getChar(false)) != 13)
+				s.addChar (c);
+			return s.toString ();
+		}
+		
+		try {
+			
+			return Sys.stdin ().readLine ();
+			
+		} catch (e:Eof) {
 			
 			return "";
 			
@@ -215,4 +321,12 @@ class BlackBerryHelper {
 	}
 		
 
+}
+
+
+typedef BlackBerryDebugToken = {
+	
+	var authorID:String;
+	var deviceIDs:Array<String>;
+	
 }

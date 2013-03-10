@@ -1,5 +1,5 @@
 package nme.events;
-#if code_completion
+#if display
 
 
 /**
@@ -143,9 +143,9 @@ extern class KeyboardEvent extends Event {
 
 
 #elseif (cpp || neko)
-typedef KeyboardEvent = neash.events.KeyboardEvent;
+typedef KeyboardEvent = native.events.KeyboardEvent;
 #elseif js
-typedef KeyboardEvent = jeash.events.KeyboardEvent;
+typedef KeyboardEvent = browser.events.KeyboardEvent;
 #else
 typedef KeyboardEvent = flash.events.KeyboardEvent;
 #end

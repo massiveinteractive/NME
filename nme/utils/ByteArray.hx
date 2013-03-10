@@ -1,5 +1,5 @@
 package nme.utils;
-#if code_completion
+#if display
 
 
 /**
@@ -538,9 +538,9 @@ extern class ByteArray /*implements IDataOutput,*/ implements IDataInput, implem
 
 
 #elseif (cpp || neko)
-typedef ByteArray = neash.utils.ByteArray;
+typedef ByteArray = native.utils.ByteArray;
 #elseif js
-typedef ByteArray = jeash.utils.ByteArray;
+typedef ByteArray = browser.utils.ByteArray;
 #else
 typedef ByteArray = flash.utils.ByteArray;
 #end

@@ -1,5 +1,5 @@
 package nme.ui;
-#if code_completion
+#if display
 
 
 extern class Accelerometer
@@ -8,7 +8,7 @@ extern class Accelerometer
 }
 
 #elseif (cpp || neko)
-typedef Accelerometer = neash.ui.Accelerometer;
+typedef Accelerometer = native.ui.Accelerometer;
 #elseif js
-typedef Accelerometer = jeash.ui.Accelerometer;
+typedef Accelerometer = browser.ui.Accelerometer;
 #end

@@ -1,5 +1,5 @@
 package nme.ui;
-#if code_completion
+#if display
 
 
 /**
@@ -28,9 +28,9 @@ package nme.ui;
 
 
 #elseif (cpp || neko)
-typedef MultitouchInputMode = neash.ui.MultitouchInputMode;
+typedef MultitouchInputMode = native.ui.MultitouchInputMode;
 #elseif js
-typedef MultitouchInputMode = jeash.ui.MultitouchInputMode;
+typedef MultitouchInputMode = browser.ui.MultitouchInputMode;
 #else
 typedef MultitouchInputMode = flash.ui.MultitouchInputMode;
 #end

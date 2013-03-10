@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -18,9 +18,9 @@ package nme.display;
 
 
 #elseif (cpp || neko)
-typedef StageDisplayState = neash.display.StageDisplayState;
+typedef StageDisplayState = native.display.StageDisplayState;
 #elseif js
-typedef StageDisplayState = jeash.display.StageDisplayState;
+typedef StageDisplayState = browser.display.StageDisplayState;
 #else
 typedef StageDisplayState = flash.display.StageDisplayState;
 #end

@@ -3,6 +3,7 @@ package helpers;
 
 import data.Asset;
 import data.Icons;
+import haxe.io.Eof;
 import haxe.io.Path;
 import sys.io.File;
 import sys.FileSystem;
@@ -25,13 +26,25 @@ class CordovaHelper {
 			
 			case "ios":
 				
-				// temporary hack
-				ProcessHelper.runCommand ("", "defaults", [ "write", "com.apple.dt.Xcode", "IDEApplicationwideBuildSettings", "-dict-add", "CORDOVALIB", defines.get ("CORDOVA_PATH") ]);
+				var directoryName = "Release";
 				
+				if (debug) {
+					
+					directoryName = "Debug";
+					
+				}
 				
-				var cordovaLib = defines.get ("CORDOVA_PATH") + "/lib/ios/CordovaLib";
+				if (targetFlags.exists ("simulator")) {
+					
+					directoryName += "-iphonesimulator";
+					
+				} else {
+					
+					directoryName += "-iphoneos";
+					
+				}
 				
-				IOSHelper.build (workingDirectory, debug, [ "CORDOVALIB=" + cordovaLib ]);
+				IOSHelper.build (workingDirectory, debug, [ "CONFIGURATION_BUILD_DIR=" + FileSystem.fullPath (workingDirectory) + "/build/" + directoryName ]);
 				
 				if (!targetFlags.exists ("simulator")) {
 		            
@@ -48,7 +61,84 @@ class CordovaHelper {
 		    		
 		    	} else {
 		    		
-					AntHelper.run (workingDirectory, [ "playbook", "build" ]);
+					//AntHelper.run (workingDirectory, [ "playbook", "build" ]);
+					
+					var args = [ "qnx", "build" ];
+					
+					if (!defines.exists ("KEY_STORE")) {
+						
+						var debugTokenPath = PathHelper.tryFullPath (defines.get ("BLACKBERRY_DEBUG_TOKEN"));
+						var targetPath = defines.get ("WEBWORKS_SDK") + "/debugToken.bar";
+						
+						if (FileSystem.exists (debugTokenPath)) {
+							
+							try {
+								
+								if (FileSystem.exists (targetPath)) {
+									
+									FileSystem.deleteFile (targetPath);
+									
+								}
+								
+								File.copy (debugTokenPath, targetPath);
+								
+							} catch (e:Dynamic) {}
+							
+						}
+						
+					} else {
+						
+						var keyStorePath = PathHelper.tryFullPath (defines.get ("KEY_STORE"));
+						var targetPath = "";
+						
+						if (InstallTool.isWindows) {
+							
+							targetPath = Sys.getEnv ("HOMEPATH") + "\\AppData\\Local\\Research In Motion";
+							
+						} else if (InstallTool.isMac) {
+						
+							targetPath = PathHelper.expand ("~/Library/Research In Motion");
+							
+						} else {
+							
+							targetPath = PathHelper.expand ("~/.rim");
+							
+						}
+						
+						targetPath += "/author.p12";
+						
+						if (FileSystem.exists (keyStorePath)) {
+							
+							try {
+								
+								PathHelper.mkdir (Path.directory (targetPath));
+								
+								if (FileSystem.exists (targetPath)) {
+									
+									FileSystem.deleteFile (targetPath);
+									
+								}
+								
+								File.copy (keyStorePath, targetPath);
+								
+							} catch (e:Dynamic) {}
+							
+						}
+						
+						if (defines.exists ("KEY_STORE") && !defines.exists ("KEY_STORE_PASSWORD")) {
+							
+							defines.set ("KEY_STORE_PASSWORD", prompt ("Keystore password", true));
+							Sys.println ("");
+							
+						}
+						
+						args.push ("-Dproperties.qnx.sigtool.password=" + defines.get ("KEY_STORE_PASSWORD"));
+						args.push ("-Dbuild.number=" + defines.get ("APP_BUILD_NUMBER"));
+						args.push ("-Dcode.sign=true");
+						
+					}
+					
+					AntHelper.run (workingDirectory, args);
 					
 				}
 			
@@ -84,7 +174,7 @@ class CordovaHelper {
 			
 			case "blackberry":
 				
-				context.BLACKBERRY_AUTHOR_ID = BlackBerryHelper.getAuthorID (targetPath);
+				context.BLACKBERRY_AUTHOR_ID = BlackBerryHelper.processDebugToken (targetPath).authorID;
 				FileHelper.recursiveCopy (NME + "/templates/cordova/blackberry/template", targetPath, context);
 			
 		}
@@ -145,7 +235,17 @@ class CordovaHelper {
 		    	} else {
 					
 					var safePackageName = StringTools.replace (defines.get ("APP_TITLE"), " ", "");
-					BlackBerryHelper.deploy (workingDirectory, "build/" + safePackageName + ".bar");
+					//BlackBerryHelper.deploy (workingDirectory, "build/" + safePackageName + ".bar");
+					
+					if (targetFlags.exists ("simulator")) {
+						
+						BlackBerryHelper.deploy (workingDirectory, "build/simulator/" + safePackageName + ".bar");
+						
+					} else {
+						
+						BlackBerryHelper.deploy (workingDirectory, "build/device/" + safePackageName + ".bar");
+						
+					}
 				
 				}
 			
@@ -167,6 +267,31 @@ class CordovaHelper {
 	}
 	
 	
+	private static function prompt (name:String, ?passwd:Bool):String {
+		
+		Sys.print (name + ": ");
+		
+		if (passwd) {
+			var s = new StringBuf ();
+			var c;
+			while ((c = Sys.getChar(false)) != 13)
+				s.addChar (c);
+			return s.toString ();
+		}
+		
+		try {
+			
+			return Sys.stdin ().readLine ();
+			
+		} catch (e:Eof) {
+			
+			return "";
+			
+		}
+		
+	}
+	
+	
 	public static function updateIcon (buildDirectory:String, icons:Icons, assets:Array <Asset>, context:Dynamic):Void {
 		
 		var iconCount = 0;
@@ -179,8 +304,8 @@ class CordovaHelper {
 				
 				// 80 for BBOS?
 				
-				sizes = [ 86 ];
-				targetPaths = [ "res/icon/icon.png" ];
+				sizes = [ 86, 150 ];
+				targetPaths = [ "res/icon/icon-86.png", "res/icon/icon-150.png" ];
 			
 			case "ios":
 				
@@ -194,6 +319,7 @@ class CordovaHelper {
 				
 		}
 		
+		context.ICONS = [];
 		for (i in 0...sizes.length) {
 			
 			var icon_name = icons.findIcon (sizes[i], sizes[i]);
@@ -202,20 +328,13 @@ class CordovaHelper {
 				
 				var tmpDir = buildDirectory + "/haxe";
 				PathHelper.mkdir (tmpDir);
-				var tmp_name = tmpDir + "/icon";
+				var tmp_name = tmpDir + "/icon-" + sizes[i] + ".png";
 				
-				if (iconCount > 0) {
-					
-					tmp_name += iconCount;
-					
-				}
+				Sys.println (sizes[i]);
 				
-				tmp_name += ".png";
-				
-				if (icons.updateIcon (86, 86, tmp_name)) {
+				if (icons.updateIcon (sizes[i], sizes[i], tmp_name)) {
 					
 					icon_name = tmp_name;
-					iconCount++;
 					
 				}
 				
@@ -225,6 +344,7 @@ class CordovaHelper {
 				
 				assets.push (new Asset (icon_name, targetPaths[i], Asset.TYPE_IMAGE, Path.withoutDirectory (icon_name), "1"));
 				context.APP_ICON = targetPaths[i];
+				context.ICONS.push (targetPaths[i]);
 				context.HAS_ICON = true;
 				
 			}

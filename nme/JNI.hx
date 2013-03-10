@@ -1,5 +1,5 @@
 package nme;
-#if code_completion
+#if display
 
 
 extern class JNI
@@ -27,5 +27,5 @@ extern class JNI
 
 
 #elseif android
-typedef JNI = neash.JNI;
+typedef JNI = native.JNI;
 #end

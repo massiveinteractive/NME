@@ -1,70 +1,72 @@
-import flash.text.TextFieldAutoSize;
 import flash.display.Sprite;
 import flash.text.TextField;
-import nme.JNI;
 
 class Sample extends Sprite
 {
-	public static function main()
-	{
-		new Sample();
-	}
+   var url:TextField;
+   var go:TextField;
 
-	static inline var DEFAULT_BROWSER_URL = "http://www.google.com";
+   function new()
+   {
+      super();
+      flash.Lib.current.addChild(this);
 
-	var urlText:TextField;
-	var launchBrowserButton:TextField;
+      url = new TextField();
+      url.text="http://www.haxe.org/";
+      url.type = flash.text.TextFieldType.INPUT;
+      url.height = 18;
+      url.width = 200;
+      url.x = 20;
+      url.y = 20;
+      url.border = true;
+      url.borderColor =  0x000000;
+      addChild(url);
 
-	function new()
-	{
-		super();
+      go = new TextField();
+      go.htmlText = "<font size='24'>GO!</font>";
+      go.width = 45;
+      go.height = 28;
+      go.x = 240;
+      go.y = 10;
+      go.border = true;
+      go.borderColor =  0xff0000;
+      go.selectable = false;
+      go.addEventListener(flash.events.MouseEvent.CLICK,function(_) { launchWeb(); });
+      addChild(go);
 
-		flash.Lib.current.addChild(this);
-		createGUI();
-	}
+      test();
+   }
 
-	function createGUI()
-	{
-		urlText = new TextField();
-		urlText.text = DEFAULT_BROWSER_URL;
-		urlText.type = flash.text.TextFieldType.INPUT;
-		urlText.height = 18;
-		urlText.width = 200;
-		urlText.x = 20;
-		urlText.y = 20;
-		urlText.border = true;
-		urlText.borderColor =  0x000000;
-		addChild(urlText);
+   function test()
+   {
+      trace("Test create ....");
+      var t = nme.Test.create(this);
+      trace("Test call ....");
+      t.callMe(16.0);
+      trace("Test done.");
+   }
 
-		launchBrowserButton = new TextField();
-		launchBrowserButton.htmlText = "<font size='24'>Launch Browser</font>";
-		launchBrowserButton.width = 180;
-		launchBrowserButton.height = 40;
-		launchBrowserButton.y = 100;
-		launchBrowserButton.border = true;
-		launchBrowserButton.borderColor =  0xff0000;
-		launchBrowserButton.selectable = false;
+   function square(inVal:Float)
+   {
+      trace("in square function:" + inVal);
+      return inVal*inVal;
+   }
 
-		//		launchBrowserButton.addEventListener(flash.events.MouseEvent.CLICK, function(_) { launchChromeBrowser(); });
-		launchBrowserButton.addEventListener(flash.events.MouseEvent.CLICK, function(_) { launchEmbeddedBrowser(); });
+   function launchWeb()
+   {
+      var dest = url.text;
+      trace("DEST ========= " + dest);
 
-		addChild(launchBrowserButton);
-	}
+      var launch:Dynamic = nme.JNI.createStaticMethod("nme.NMEWebView", "nmeCreate", "(Ljava/lang/String;)Landroid/view/View;");
+      trace("LAUNCH ========= " + launch);
 
-	function launchChromeBrowser()
-	{
-		launchBrowser("launchChrome", urlText.text);
-	}
+      if (launch!=null)
+         nme.Lib.postUICallback( function() { launch(dest); } );
+   }
 
-	function launchEmbeddedBrowser()
-	{
-		launchBrowser("launchEmbedded", urlText.text);
-	}
-
-	function launchBrowser(methodName:String, url:String)
-	{
-		var launchBrowser:Dynamic = JNI.createStaticMethod("nme/BrowserLauncher", methodName, "(Ljava/lang/String;)V");
-		if (launchBrowser != null)
-			nme.Lib.postUICallback( function() { launchBrowser(url); } );
-	}
+   public static function main()
+   {
+      new Sample();
+   }
 }
+

@@ -1,5 +1,5 @@
 package nme.utils;
-#if code_completion
+#if display
 
 
 extern class WeakRef<T>
@@ -11,5 +11,5 @@ extern class WeakRef<T>
 
 
 #elseif (cpp || neko)
-typedef WeakRef<T> = neash.utils.WeakRef<T>;
+typedef WeakRef<T> = native.utils.WeakRef<T>;
 #end

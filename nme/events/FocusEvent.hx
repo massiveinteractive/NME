@@ -1,5 +1,5 @@
 package nme.events;
-#if code_completion
+#if display
 
 
 /**
@@ -117,9 +117,9 @@ extern class FocusEvent extends Event {
 
 
 #elseif (cpp || neko)
-typedef FocusEvent = neash.events.FocusEvent;
+typedef FocusEvent = native.events.FocusEvent;
 #elseif js
-typedef FocusEvent = jeash.events.FocusEvent;
+typedef FocusEvent = browser.events.FocusEvent;
 #else
 typedef FocusEvent = flash.events.FocusEvent;
 #end

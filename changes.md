@@ -1,6 +1,65 @@
 Changes
 =======
 
+3.5.3
+---------------
+* Added support for a new Haxe-based project format
+* Added alpha feature support for Stage3D APIs
+* Restored Mac OS X 10.6.8 compatibility
+* Minor fixes
+
+3.5.2
+---------------
+* Improved support in OpenGLView for older graphics chipsets
+* Restored Windows XP compatibility
+* Multiple fixes and improvements
+
+3.5.1
+---------------
+* Post-release bug fixes
+
+3.5.0
+---------------
+* Updated to be compatible with Haxe 3 when it is available
+* New and completely rewritten command-line tools
+* Added direct renderer support, for custom OpenGL display objects
+* SWF libraries are now integrated with nme.Assets
+* "neash" and "jeash" code paths are now "native" and "browser"
+* Significant compatibility improvements with HTML5
+* Added fast drawTiles support for HTML5
+* Initial work to support DirectX and WinRT
+* BlackBerry native extensions can now receive system events
+* Improved Windows 8 support
+* Improvements to ByteArray support
+* Many small fixes and improvements
+* Removed integration for Adobe AIR
+* Removed integration for Apache Cordova
+
+3.4.4
+---------------
+* Added BlackBerry 10 support
+* Fixed build issues with Xcode 4.5
+* Improved compatibility with Xbox 360 and PS3 gamepads
+* Initial work to expose low-level GL functions
+* Various small fixes
+
+
+3.4.3
+---------------
+* Project names are now optional when running commands ("nme test blackberry")
+* Added support for OpenGL 2 shader-based rendering
+* Improved support for AIR mobile
+* Minor fixes for BlackBerry release signing
+* Fixed compatibility for webOS devices
+* Flags with two dashes ("--connect") now pass through to the Haxe compiler
+* Build ID file changed from "ProjectName.build" to ".build"
+* Implemented Sound.loadCompressedDataFromByteArray
+* Implemented Sound.loadPCMFromByteArray
+* Fixed AJAX asset loading on HTML5
+* Improved compatibility for MP3 file formats for Flash
+* Removed need for Event.RESIZE to get initial iOS stage width and height
+* Compatibility fixes for Windows 8 RTM
+
 
 3.4.2
 ---------------

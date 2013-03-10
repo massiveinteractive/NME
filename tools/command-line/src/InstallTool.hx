@@ -32,7 +32,7 @@ class InstallTool {
 	public static var version = "3.4.1";
 	
 	
-	static public function create (nme:String, command:String, defines:Hash <String>, userDefines:Hash <String>, includePaths:Array <String>, projectFile:String, target:String, targetFlags:Hash <String>, debug:Bool, args:Array<String>) {
+	static public function create (nme:String, command:String, defines:Hash <String>, userDefines:Hash <String>, includePaths:Array <String>, projectFile:String, target:String, targetFlags:Hash <String>, haxeFlags:Array <String>, debug:Bool, args:Array<String>) {
 		
 		var installer:InstallerBase = null;
 		
@@ -116,7 +116,7 @@ class InstallTool {
 			
 		}
 		
-		installer.create (nme, command, defines, userDefines, includePaths, projectFile, target, targetFlags, debug, args);
+		installer.create (nme, command, defines, userDefines, includePaths, projectFile, target, targetFlags, haxeFlags, debug, args);
 		
 	}
 	
@@ -175,7 +175,9 @@ class InstallTool {
 			
 			for (file in files) {
 				
-				if (!FileSystem.isDirectory (PathHelper.combine (path, file))) {
+				var path = PathHelper.combine (path, file);
+				
+				if (FileSystem.exists (path) && !FileSystem.isDirectory (path)) {
 					
 					if (Path.extension (file) == "nmml" && file != "include.nmml") {
 						
@@ -308,6 +310,7 @@ class InstallTool {
 		var userDefines = new Hash <String> ();
 		var includePaths = new Array <String> ();
 		var targetFlags = new Hash <String> ();
+		var haxeFlags = new Array <String> ();
 		
 		includePaths.push (".");
 		
@@ -366,12 +369,18 @@ class InstallTool {
 		var words:Array <String> = new Array <String> ();
 		var passArgs:Array <String> = new Array <String> ();
 		var pushArgs = false;
+		var catchHaxeFlag = false;
 		
 		for (arg in args) {
 			
 			var equals:Int = arg.indexOf ("=");
 			
-			if (pushArgs) {
+			if (catchHaxeFlag) {
+				
+				haxeFlags.push (arg);
+				catchHaxeFlag = false;
+				
+			} else if (pushArgs) {
 				
 				passArgs.push(arg);
 				
@@ -426,7 +435,21 @@ class InstallTool {
 			
 			} else if (arg.substr (0, 1) == "-") {
 				
-				targetFlags.set (arg.substr (1), "");
+				if (arg.substr (1, 1) == "-") {
+					
+					haxeFlags.push (arg);
+					
+					if (arg == "--remap" || arg == "--connect") {
+						
+						catchHaxeFlag = true;
+						
+					}
+					
+				} else {
+					
+					targetFlags.set (arg.substr (1), "");
+					
+				}
 				
 			} else {
 				
@@ -653,7 +676,7 @@ class InstallTool {
 			
 			try { Sys.setCwd (Path.directory (projectFile)); } catch (e:Dynamic) {}
 			
-			create (nme, command, defines, userDefines, includePaths, Path.withoutDirectory (projectFile), target, targetFlags, debug, passArgs);
+			create (nme, command, defines, userDefines, includePaths, Path.withoutDirectory (projectFile), target, targetFlags, haxeFlags, debug, passArgs);
 			
 			try { Sys.setCwd (cacheCwd); } catch (e:Dynamic) {}
 			

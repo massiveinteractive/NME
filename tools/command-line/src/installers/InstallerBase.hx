@@ -79,7 +79,7 @@ class InstallerBase {
 	}
 	
 	
-	public function create (NME:String, command:String, defines:Hash <String>, userDefines:Hash <String>, includePaths:Array <String>, projectFile:String, target:String, targetFlags:Hash <String>, debug:Bool, args:Array<String>):Void {
+	public function create (NME:String, command:String, defines:Hash <String>, userDefines:Hash <String>, includePaths:Array <String>, projectFile:String, target:String, targetFlags:Hash <String>, haxeFlags:Array <String>, debug:Bool, args:Array<String>):Void {
 		
 		this.NME = NME;
 		this.command = command;
@@ -92,6 +92,8 @@ class InstallerBase {
 		this.args = args;
 		
 		templatePaths = [ NME + "/templates/default/" ];
+
+		compilerFlags = compilerFlags.concat (haxeFlags);
 		
 		for (key in userDefines.keys ()) {
 			
@@ -169,6 +171,7 @@ class InstallerBase {
 		// Strip off 0x ....
 		setDefault ("WIN_FLASHBACKGROUND", defines.get ("WIN_BACKGROUND").substr (2));
 		setDefault ("APP_VERSION_SHORT", defines.get ("APP_VERSION").substr (2));
+		setDefault ("APP_FILE_SAFE", StringTools.replace (defines.get ("APP_FILE"), " ", ""));
 		setDefault ("XML_DIR", defines.get ("BUILD_DIR") + "/" + target);
 		setDefault ("KEY_STORE_TYPE", "pkcs12");
 		
@@ -196,7 +199,7 @@ class InstallerBase {
 		}
 		
 		buildDirectory = defines.get ("BUILD_DIR");
-		getBuildNumber ((command == "build" || command == "test"));
+		getBuildNumber ((command == "build" || command == "test") && defines.exists ("KEY_STORE"));
 		
 		onCreate ();
 		
@@ -714,9 +717,8 @@ class InstallerBase {
 		}
 		
 		if (targetFlags.exists ("html5")) {
-			
+		
 			defines.set ("html5", "1");
-			compilerFlags.push ("-D html5");
 			
 		}
 		
@@ -738,7 +740,11 @@ class InstallerBase {
 		setDefault ("WIN_FPS", "60");
 		setDefault ("WIN_BACKGROUND", "0xffffff");
 		setDefault ("WIN_HARDWARE", "true");
-		setDefault ("WIN_SHADERS", "false");
+		// Set this to false until the feature is fully debugged....
+		setDefault ("WIN_ALLOW_SHADERS", "false");
+		setDefault ("WIN_REQUIRE_SHADERS", "false");
+		setDefault ("WIN_DEPTH_BUFFER", "false");
+		setDefault ("WIN_STENCIL_BUFFER", "false");
 		
 		if (defines.exists ("mac")) {
 			
@@ -1305,7 +1311,11 @@ class InstallerBase {
 					case "unset":
 						
 						defines.remove (element.att.name);
-					
+						
+					case "templatePath":
+						templatePaths.unshift( substitute(element.att.name) );
+						
+						
 					case "setenv":
 						
 						var value:String = "";
@@ -1374,7 +1384,7 @@ class InstallerBase {
 						
 						if (name != "") {
 							
-							var xml:Fast = new Fast (Xml.parse (File.getContent (name)).firstElement ());
+							var xml = new Fast (Xml.parse (File.getContent (name)).firstElement ());
 							var path = Path.directory (name);
 							if (useFullClassPaths ()) {
                                                         	path = FileSystem.fullPath (path);

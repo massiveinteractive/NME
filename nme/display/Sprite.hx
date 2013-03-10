@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -189,9 +189,9 @@ extern class Sprite extends DisplayObjectContainer {
 
 
 #elseif (cpp || neko)
-typedef Sprite = neash.display.Sprite;
+typedef Sprite = native.display.Sprite;
 #elseif js
-typedef Sprite = jeash.display.Sprite;
+typedef Sprite = browser.display.Sprite;
 #else
 typedef Sprite = flash.display.Sprite;
 #end

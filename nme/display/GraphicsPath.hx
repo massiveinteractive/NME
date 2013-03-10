@@ -1,5 +1,5 @@
 package nme.display;
-#if code_completion
+#if display
 
 
 /**
@@ -105,9 +105,9 @@ package nme.display;
 
 
 #elseif (cpp || neko)
-typedef GraphicsPath = neash.display.GraphicsPath;
+typedef GraphicsPath = native.display.GraphicsPath;
 #elseif js
-typedef GraphicsPath = jeash.display.GraphicsPath;
+typedef GraphicsPath = browser.display.GraphicsPath;
 #else
 typedef GraphicsPath = flash.display.GraphicsPath;
 #end

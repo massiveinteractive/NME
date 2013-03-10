@@ -2,6 +2,7 @@
 #include <android/log.h>
 #include <stdio.h>
 #include <string>
+#include "AndroidCommon.h"
 
 #undef LOGV
 #undef LOGE
@@ -9,8 +10,6 @@
 #define LOGV(msg,args...) __android_log_print(ANDROID_LOG_ERROR, "NME::System", msg, ## args)
 
 #define LOGE(msg,args...) __android_log_print(ANDROID_LOG_ERROR, "NME::System", msg, ## args)
-
-extern JNIEnv *GetEnv();
 
 
 namespace nme {
@@ -69,13 +68,11 @@ namespace nme {
 	}
 	
 	std::string CapabilitiesGetLanguage() {
-	
 		JNIEnv *env = GetEnv();
 		jclass cls = env->FindClass("org/haxe/nme/GameActivity");
 		jmethodID mid = env->GetStaticMethodID(cls, "CapabilitiesGetLanguage", "()Ljava/lang/String;");
 		if(mid == 0)
 			return std::string("");
-		
 		jstring jLang = (jstring) env->CallStaticObjectMethod(cls, mid);
 		const char *nativeLang = env->GetStringUTFChars(jLang, 0);
 		std::string result(nativeLang);
@@ -120,16 +117,12 @@ namespace nme {
 		}
 		
 		jstring jInId = env->NewStringUTF(inId);
-		printf("about to call method");
-		jstring jPref = (jstring) env->CallStaticObjectMethod(cls, mid, jInId);
+        jstring jPref = (jstring) env->CallStaticObjectMethod(cls, mid, jInId);
 		env->DeleteLocalRef(jInId);
-		printf("about to create preference");
-		const char *nativePref = env->GetStringUTFChars(jPref, 0);
+        const char *nativePref = env->GetStringUTFChars(jPref, 0);
 		std::string result(nativePref);
-		printf("about to release");
-		env->ReleaseStringUTFChars(jPref, nativePref);
-		printf("about to return.");
-		return result;	
+        env->ReleaseStringUTFChars(jPref, nativePref);
+        return result;
 	}
 	
 	//

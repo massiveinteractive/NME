@@ -1,5 +1,5 @@
 package nme.filesystem;
-#if code_completion
+#if display
 
 
 /**
@@ -80,5 +80,5 @@ extern class StorageVolume
 
 
 #elseif (cpp || neko)
-typedef StorageVolume = neash.filesystem.StorageVolume;
+typedef StorageVolume = native.filesystem.StorageVolume;
 #end

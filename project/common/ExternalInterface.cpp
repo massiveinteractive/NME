@@ -25,6 +25,8 @@
 #include <algorithm>
 #include <URL.h>
 #include <ByteArray.h>
+#include <Lzma.h>
+#include <NMEThread.h>
 
 
 #ifdef min
@@ -113,6 +115,9 @@ static int _id_name;
 static int _id_contentType;
 static int _id_nmeBytes;
 
+static int _id_rect;
+static int _id_matrix;
+
 
 
 
@@ -198,6 +203,8 @@ extern "C" void InitIDs()
    _id_name = val_id("name");
    _id_contentType = val_id("contentType");
    _id_nmeBytes = val_id("nmeBytes");
+   _id_rect = val_id("rect");
+   _id_matrix = val_id("matrix");
 
    gObjectKind = alloc_kind();
 }
@@ -1023,6 +1030,7 @@ AutoGCRoot *sOnCreateCallback = 0;
 
 void OnMainFrameCreated(Frame *inFrame)
 {
+   SetMainThread();
    value frame = inFrame ? ObjectToAbstract(inFrame) : alloc_null();
    val_call1( sOnCreateCallback->get(),frame );
    delete sOnCreateCallback;
@@ -1285,12 +1293,15 @@ DEFINE_PRIM (nme_stage_get_normal_orientation, 0);
 
 // --- ManagedStage ----------------------------------------------------------------------
 
+#ifndef HX_WINRT
+
 value nme_managed_stage_create(value inW,value inH,value inFlags)
 {
+   SetMainThread();
    ManagedStage *stage = new ManagedStage(val_int(inW),val_int(inH),val_int(inFlags));
    return ObjectToAbstract(stage);
 }
-DEFINE_PRIM(nme_managed_stage_create,2);
+DEFINE_PRIM(nme_managed_stage_create,3);
 
 
 value nme_managed_stage_pump_event(value inStage,value inEvent)
@@ -1307,7 +1318,7 @@ value nme_managed_stage_pump_event(value inStage,value inEvent)
 DEFINE_PRIM(nme_managed_stage_pump_event,2);
 
 
-
+#endif
 
 
 
@@ -1740,6 +1751,58 @@ DO_DISPLAY_PROP(moves_for_soft_keyboard,MovesForSoftKeyboard,alloc_bool,val_bool
 DO_PROP_READ(DisplayObject,display_object,mouse_x,MouseX,alloc_float)
 DO_PROP_READ(DisplayObject,display_object,mouse_y,MouseY,alloc_float)
 
+// --- DirectRenderer -----------------------------------------------------
+
+void onDirectRender(void *inHandle,const Rect &inRect, const Transform &inTransform)
+{
+   if (inHandle)
+   {
+      AutoGCRoot *root = (AutoGCRoot *)inHandle;
+      value rect = alloc_empty_object();
+      ToValue(rect,inRect);
+      val_call1(root->get(),rect);
+   }
+}
+
+value nme_direct_renderer_create()
+{
+   return ObjectToAbstract( new DirectRenderer(onDirectRender) );
+}
+DEFINE_PRIM(nme_direct_renderer_create,0);
+
+value nme_direct_renderer_set(value inRenderer, value inCallback)
+{
+   DirectRenderer *renderer = 0;
+
+   if (AbstractToObject(inRenderer,renderer))
+   {
+      if (val_is_null(inCallback))
+      {
+         if (renderer->renderHandle)
+         {
+            AutoGCRoot *root = (AutoGCRoot *)renderer->renderHandle;
+            delete root;
+            renderer->renderHandle = 0;
+         }
+      }
+      else
+      {
+         if (renderer->renderHandle)
+         {
+            AutoGCRoot *root = (AutoGCRoot *)renderer->renderHandle;
+            root->set(inCallback);
+         }
+         else
+         {
+            renderer->renderHandle = new AutoGCRoot(inCallback);
+         }
+      }
+   }
+
+   return alloc_null();
+}
+DEFINE_PRIM(nme_direct_renderer_set,2);
+
 // --- SimpleButton -----------------------------------------------------
 
 value nme_simple_button_create()
@@ -1899,6 +1962,7 @@ value nme_gfx_begin_fill(value inGfx,value inColour, value inAlpha)
    }
    return alloc_null();
 }
+
 DEFINE_PRIM(nme_gfx_begin_fill,3);
 
 
@@ -2250,19 +2314,19 @@ value nme_gfx_draw_tiles(value inGfx,value inSheet, value inXYIDs,value inFlags)
          {
             x = vals[0];
             y = vals[1];
-            id =vals[2]+0.5;
+            id =vals[2];
          }
          else if (fvals)
          {
             x = fvals[0];
             y = fvals[1];
-            id =fvals[2]+0.5;
+            id =fvals[2];
          }
          else
          {
             x = val_number(val_ptr[0]);
             y = val_number(val_ptr[1]);
-            id =val_number(val_ptr[2])+0.5;
+            id =val_number(val_ptr[2]);
          }
          if (id>=0 && id<max)
          {
@@ -2783,20 +2847,30 @@ TEXT_PROP_GET_IDX(line_text,LineText,alloc_wstring);
 TEXT_PROP_GET_IDX(line_offset,LineOffset,alloc_int);
 
 
-value nme_bitmap_data_create(value inWidth, value inHeight, value inFlags, value inRGB, value inA)
+value nme_bitmap_data_create(value* arg, int nargs)
 {
-   uint32 flags = val_int(inFlags);
+   enum { aWidth, aHeight, aFlags, aRGB, aA, aGPU };
+
+   int w = val_number(arg[aWidth]);
+   int h = val_number(arg[aHeight]);
+   uint32 flags = val_int(arg[aFlags]);
+
    PixelFormat format = (flags & 0x01) ? pfARGB : pfXRGB;
-   Surface *result = new SimpleSurface( val_number(inWidth),val_number(inHeight), format );
-   if (val_is_int(inRGB))
+   int gpu = -1;
+   if (!val_is_null(arg[aGPU]))
+      gpu = val_int(arg[aGPU]);
+   
+   Surface *result = new SimpleSurface( w, h, format, 1, gpu );
+   if (gpu==-1 && val_is_int(arg[aRGB]))
    {
-      int rgb = val_int(inRGB);
+      int rgb = val_int(arg[aRGB]);
+      value inA = arg[aA];
       int alpha = val_is_int(inA) ? val_int(inA) : 255;
       result->Clear( rgb + (alpha<<24) );
    }
    return ObjectToAbstract(result);
 }
-DEFINE_PRIM(nme_bitmap_data_create,5);
+DEFINE_PRIM_MULT(nme_bitmap_data_create);
 
 value nme_bitmap_data_width(value inHandle)
 {
@@ -2873,9 +2947,9 @@ value nme_bitmap_data_load(value inFilename, value format)
       surface->DecRef();
       
       if ( val_int( format ) == 1 ) 
-         surface->setFormat( pfARGB4444 );
+         surface->setGPUFormat( pfARGB4444 );
       else if ( val_int( format ) == 2 ) 
-         surface->setFormat( pfRGB565 );
+         surface->setGPUFormat( pfRGB565 );
          
       return result;
    }
@@ -2889,9 +2963,9 @@ value nme_bitmap_data_set_format(value inHandle, value format)
    if (AbstractToObject(inHandle,surface))
    {
       if ( val_int( format ) == 1 ) 
-         surface->setFormat( pfARGB4444 );
+         surface->setGPUFormat( pfARGB4444 );
       else if ( val_int( format ) == 2 ) 
-         surface->setFormat( pfRGB565 );
+         surface->setGPUFormat( pfRGB565 );
    }
    return alloc_null();
 }
@@ -2906,6 +2980,27 @@ value nme_bitmap_data_from_bytes(value inRGBBytes, value inAlphaBytes)
    Surface *surface = Surface::LoadFromBytes(bytes.data,bytes.length);
    if (surface)
    {
+      if (inAlphaBytes)
+      {
+         ByteData alphabytes;
+         if (!FromValue(alphabytes,inAlphaBytes))
+            return alloc_null();
+            
+         if(alphabytes.length > 0)
+         {
+            int index = 0;
+            for (int y=0; y < surface->Height(); y++)
+            {
+               for (int x=0; x < surface->Width(); x++)
+			   {
+                  uint32 alpha = alphabytes.data[index++] << 24;
+                  uint32 pixel = surface->getPixel(x, y) << 8;
+                  surface->setPixel(x, y, (pixel >> 8) + alpha, true);
+               }
+            } 
+         }
+      } 
+	  
       value result = ObjectToAbstract(surface);
       surface->DecRef();
       return result;
@@ -3361,7 +3456,6 @@ DEFINE_PRIM(nme_sound_from_file,2);
 
 value nme_sound_from_data(value inData, value inLen, value inForceMusic)
 {
-   #ifndef IPHONE
    int length = val_int(inLen);
    Sound *sound;
    printf("trying bytes with length %d", length);
@@ -3372,6 +3466,8 @@ value nme_sound_from_data(value inData, value inLen, value inForceMusic)
       }
       printf("I'm here! trying bytes with length %d", length);
       sound = Sound::Create((unsigned char *)buffer_data(buf), length, val_bool(inForceMusic) );
+   } else {
+	   val_throw(alloc_string("Empty ByteArray"));
    }
 
    if (sound)
@@ -3379,8 +3475,9 @@ value nme_sound_from_data(value inData, value inLen, value inForceMusic)
       value result =  ObjectToAbstract(sound);
       sound->DecRef();
       return result;
+   } else {
+	   val_throw(alloc_string("Not Sound"));
    }
-   #endif
    return alloc_null();
 }
 DEFINE_PRIM(nme_sound_from_data, 3);
@@ -3709,7 +3806,35 @@ value nme_curl_get_cookies(value inLoader)
 }
 DEFINE_PRIM(nme_curl_get_cookies,1);
 
+value nme_lzma_encode(value input_value)
+{
+	buffer input_buffer = val_to_buffer(input_value);
+	buffer output_buffer = alloc_buffer_len(0);
+	Lzma::Encode(input_buffer, output_buffer);
+	return buffer_val(output_buffer);
+}
+DEFINE_PRIM(nme_lzma_encode,1);
+
+value nme_lzma_decode(value input_value)
+{
+	buffer input_buffer = val_to_buffer(input_value);
+	buffer output_buffer = alloc_buffer_len(0);
+	Lzma::Decode(input_buffer, output_buffer);
+	return buffer_val(output_buffer);
+}
+DEFINE_PRIM(nme_lzma_decode,1);
+
 
 // Reference this to bring in all the symbols for the static library
-extern "C" int nme_register_prims() { return 0; }
+#ifdef IPHONE
+extern "C" int nme_oglexport_register_prims();
+#endif
+
+extern "C" int nme_register_prims()
+{
+   #ifdef IPHONE
+   nme_oglexport_register_prims();
+   #endif
+   return 0;
+}
 
